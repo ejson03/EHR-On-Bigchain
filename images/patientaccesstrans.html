@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Required meta tags-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Colorlib Templates">
+    <meta name="author" content="Colorlib">
+    <meta name="keywords" content="Colorlib Templates">
+
+    <!-- Title Page-->
+    <title>HEALTHCHAIN</title>
+
+    <!-- Icons font CSS-->
+    <link href="vendor/mdi-font/css/material-design-iconic-font.min.css" rel="stylesheet" media="all">
+    <link href="vendor/font-awesome-4.7/css/font-awesome.min.css" rel="stylesheet" media="all">
+    <!-- Font special for pages-->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Vendor CSS-->
+    <link href="vendor/select2/select2.min.css" rel="stylesheet" media="all">
+    <link href="vendor/datepicker/daterangepicker.css" rel="stylesheet" media="all">
+
+    <!-- Main CSS-->
+    <link href="css/main.css" rel="stylesheet" media="all">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-blue-grey.css">
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans'>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+html, body, h1, h2, h3, h4, h5 {font-family: "Open Sans", sans-serif}
+</style>
+<body class="w3-theme-l5">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif}
+</style>
+<style type="text/css">
+  label {
+    display:block;
+    border:solid 2px gray;
+    line-height:250px;
+    height:250px;
+    width: 750px;
+    border-radius:10px;
+    -webkit-font-smoothing: antialiased; 
+    margin-top:10px;
+    margin-bottom:30px;
+    font-family:Arial,Helvetica,sans-serif;
+    color:black;
+    text-align:center;
+}
+
+input[type=checkbox] {
+    display: none;
+}
+
+input:checked + label {
+    border: solid 1px green;
+    color: green;
+}
+
+input:checked + label:before {
+    content: "\2713 ";
+}
+
+
+/* new stuff */
+.check {
+    visibility: hidden;
+}
+
+input:checked + label .check {
+    visibility: visible;
+}
+
+input.checkbox:checked + label:before {
+    content: "";
+}
+</style>
+</head>
+<!-- Navbar -->
+<div class="w3-top">
+ <div class="w3-bar w3-theme-d4 w3-left-align w3-large">
+  <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
+  <a href="patienthome.html" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i class="fa fa-home w3-margin-right"></i></a>
+  
+  
+    <a href="#dashb" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Dashboard" text-align="left">Dashboard</a>
+  
+  
+ </div>
+</div>
+
+
+<!-- Sidebar/menu -->
+<nav class="w3-sidebar w3-collapse w3-theme-d4 w3-animate-left" style="z-index:5;width:200px;top: 55px;" id="mySidebar"><br>
+  <div class="w3-container">
+    <a href="#" onclick="w3_close()" class="w3-hide-large w3-right w3-jumbo w3-padding w3-hover-grey" title="close menu">
+      <i class="fa fa-remove"></i>
+    </a>
+    <img src="patienticon.png" style="width:45%;" class="w3-round"><br><br>
+    <h4><b>Patient's Name</b></h4>
+    <p class="w3-text-grey">   </p>
+  </div>
+  <div class="w3-bar-block">
+   <a href="patientaddrec.html" onclick="w3_close()" class="w3-bar-item w3-button w3-padding w3-text-white"><i class="fa fa-th-large fa-fw w3-margin-right"></i>ADD MEDICAL RECORDS</a> 
+    <a href="patientmedhistory.html" onclick="w3_close()" class="w3-bar-item w3-button w3-padding w3-text-white"><i class="fa fa-th-large fa-fw w3-margin-right"></i>MY MEDICAL HISTORY</a> 
+    <a href="patientdoclist.html" onclick="w3_close()" class="w3-bar-item w3-button w3-padding  w3-text-white"><i class="fa fa-user fa-fw w3-margin-right"></i>DOCTORS LIST</a> 
+     <a href="patientaccesstrans.html" onclick="w3_close()" class="w3-bar-item w3-button w3-padding w3-text-white"><i class="fa fa-key fa-fw w3-margin-right"></i>ACCESS CONTROL</a>
+     <div class="p-t-15">
+                            <button class="btn btn--radius-2 btn--blue" type="submit" style="background:#e50505">LOG-OUT</button>
+                        </div>
+    
+  </div>
+ 
+</nav>
+<body class="w3-light-grey w3-content" style="max-width:1600px; background-image:url('logo1.png');background-repeat: no-repeat;background-attachment: fixed;background-size: cover; ">
+
+  <!--AccessTransfer-->
+  <div class="transbox" style = "background-color: #ffffff;opacity: 0.6;filter: alpha(opacity=60);position:absolute; left:160px; height:1000px; width:1100px "  id="dashb">
+        <div class="wrapper wrapper--w680" style="max-width: 950px;">
+            <div class="card card-4">
+                <div class="card-body">
+                   <h2 class="title" id="accesslist" style="font-size:40px;font-weight: bold; color:#000000;">ACCESS TRANSFER</h2>
+
+                    <div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative"><br>
+ 
+ <input id="lists[Access]" type="checkbox" name="lists[Access]" />
+<label for="lists[Access]">write description</label>                          
+                      
+</div>
+<div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative"><br>
+
+<input class="checkbox" id="lists[new]" type="checkbox" name="lists[new]" />
+<label for="lists[new]"><span class="check">✓</span> write description</label>
+</div>
+
+
+
+
+
+
+                 </div>
+               </div>
+             </div>
+           </div>

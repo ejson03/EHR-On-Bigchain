@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Rakkas' rel='stylesheet'>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+}
+
+#myBtn {
+
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  font-size: 18px;
+  border: none;
+  outline: none;
+  background-color: rgb(1, 1, 36);
+  color: white;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+#myBtn:hover {
+  background-color: #555;
+}
+:root {
+  --container-bg-color: rgb(33, 128, 218);
+  --left-bg-color: rgba(223, 39, 39, 0.7);
+  --left-button-hover-color: rgba(161, 11, 11, 0.3);
+  --right-bg-color: rgba(43, 43, 43, 0.8);
+  --right-button-hover-color: rgba(92, 92, 92, 0.3);
+  --hover-width: 75%;
+  --other-width: 25%;
+  --speed: 1000ms;
+}
+
+html, body {
+  padding:0;
+  margin:0;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+h1 {
+  font-size: 4rem;
+  color:white;
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.button {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 2.5rem;
+  padding-top: 1.3rem;
+  width: 15rem;
+  text-align: center;
+  color: #fff;
+  border: #fff solid 0.2rem;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-decoration: none;
+  transform: translateX(-50%);
+}
+
+
+.split.left .button:hover {
+  background-color: var(--left-button-hover-color);
+  border-color: var(--left-button-hover-color);
+}
+
+.split.right .button:hover {
+  background-color: var(--right-button-hover-color);
+  border-color: var(--right-button-hover-color);
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background:black;
+}
+
+.split {
+  position: absolute;
+  width: 50%;
+  height: 65%;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.split.left {
+  left:0;
+  background: url('bgdoc.jpg') center center no-repeat;
+  background-size: cover;
+}
+
+.split.left:before {
+  position:absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background: var(--left-bg-color);
+}
+
+.split.right {
+  right:0;
+  background: url('bg1.jpg') center center no-repeat;
+  background-size: cover;
+}
+
+.split.right:before {
+  position:absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background: var(--right-bg-color);
+}
+
+.split.left, .split.right, .split.right:before, .split.left:before {
+  transition: var(--speed) all ease-in-out;
+}
+
+.hover-left .left {
+  width: var(--hover-width);
+}
+
+.hover-left .right {
+  width: var(--other-width);
+}
+
+.hover-left .right:before {
+  z-index: 2;
+}
+
+
+.hover-right .right {
+  width: var(--hover-width);
+}
+
+.hover-right .left {
+  width: var(--other-width);
+}
+
+.hover-right .left:before {
+  z-index: 2;
+}
+.centered {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.centered img {
+  width: 180px;
+  height: 200px;
+  border-radius: 50%;
+}
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  top: 0;
+  width: 100%;
+}
+
+li {
+  float: left;
+}
+
+li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+li a:hover:not(.active) {
+  background-color:;
+}
+#a {
+  animation-duration: 3s;
+  animation-name: slidein;
+}
+
+@keyframes slidein {
+  from {
+    margin-left: 100%;
+    width: 300%; 
+  }
+
+  to {
+    margin-left: 0%;
+    width: 100%;
+  }
+ 
+}
+#aboutus
+  {
+    margin: 60px 70px;
+  }
+#secure
+{
+  margin: 60px 70px ;
+}
+#access
+{
+  margin: 60px 70px ;
+}
+#patient
+{
+  margin: 60px 70px ;
+}
+.logo {
+  height: 5;
+  width: 300px;
+  top: 2%;
+  left: 50%;
+}
+#Title {
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  transform: translateX(-50%);
+  text-align: center;
+  font-family: 'Titan One';font-size: 22px;
+  font-size: 3em;
+}
+@media(max-width: 800px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  .button {
+    width: 12rem;
+  }
+
+}
+
+@media(max-height: 700px) {
+  .button {
+    top: 70%;
+  }
+}
+</style>
+</head>
+<body bgcolor="black">
+<div id="TopDiv"></div>
+<a href="#TopDiv"><button id="myBtn" title="Go to top">Top</button></a href="#TopDiv">
+
+<div style="background-color:lightgrey;width:100%;height:100%" id="MainBody"><!-- partial:index.partial.html -->
+    <div class="container">
+      <div id="logo" align="center">
+          <img src="ss.png" height="200" width="400">
+     
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#why">Why healchain?</a></li>
+          </ul>
+      </div>
+     
+      <div class="split left">
+          <div class="centered">
+        <img src="doc.jpg">
+      </div>
+        <a href="/doctor" class="button">DOCTOR</a>
+      
+      </div>
+      <div class="split right">
+          <div class="centered">
+              <img src="patient.jpg">
+            </div>
+        <a href="/paitent" class="button">PATIENT</a>
+        <script  src="./script.js"></script>
+      </div>
+    </div>
+    <section id="about">
+    <br><br>
+    <div align="center">
+      <img src="ss.png" height="200" width="400">
+      </div>
+      <div id="aboutus">
+    <b><p align="center"><font size="8" color="blue" style="font-family: 'Rakkas'" align="center">ABOUT US</font></p></b>
+   <font size="5" color="white">An Electronic Health Record (EHR) is an electronic version of a patient’s medical history, that is maintained by the provider over time, and may include all of the key administrative clinical data relevant to that persons care under a particular provider, including demographics, progress notes, problems, medications, vital signs, past medical history, immunizations, laboratory data and radiology reports. The usability of an EHR is crucial to achieve success, as well as guaranteeing a high level of safe and effective level of patient care system. Therefore, it is important for care providers to take steps to ensure that their EHR will be usable and safe.
+These are entirely controlled by hospitals instead of patients, which complicates seeking medical advices from different hospitals. Patients face a critical need to focus on the details of their own healthcare and restore management of their own medical data. The rapid development of blockchain technology promotes population healthcare, including medical records as well as patient-related data. This technology provides patients with comprehensive, immutable records, and access to EHRs free from service providers and treatment websites.
+This system will account interactions with this medical data in an auditable, transparent and secure way on EHR’s distributed ledger. By using this application users will be able to leverage their medical data. This system will use to improve care for people by placing the patient at the centre of the digital transformation of healthcare.</font>
+</div>
+</section>
+      </section>
+    
+      <section id="why">
+        <br>
+      <b><p align="center"><font size="8" color="blue" style="font-family: 'Rakkas'" align="center">WHY HEALCHAIN?</font></p></b>
+        <div id="secure"><font size="6" color="red">SECURE</font><br><br>  
+        <img src="secure.png" height="190" width="190" align="left">
+       
+        <p id="a" align="center">
+          <font size="5" color="white">
+       <font size="5" color="white">CUSTOMIZED PATIENT PORTALS WHERE PATIENTS CAN EASILY ACCESS THEIR HEALTH DATA. PATIENTS CAN KEEP THEIR HEALTH DATA SAFE AND SECURE USING BLOCKCHAIN TECHNOLOGY</p></font>
+        </font>
+        </div>
+        <div id="access">
+         <p align="right"> <font size="6" color="red">ACCESS CONTROL</font></p><br>      
+          <img src="acess.jfif" height="190" width="190" align="right">      
+          <p align="center">
+            <font size="5">
+     <font size="5" color="white"> A USER-FRIENDLY INTERFACE.PROOF OF YOUR MEDICAL AUTHORITY AND EXPERTISE. PATIENTS CAN ACCESS THEIR HEALTH DATA FROM ACROSS THE GLOBE.</p></font>
+          </font>
+          </div">
+          <div id="patient"><font size="6" color="red">PATIENT DRIVEN</font><br><br>
+            <img src="patientd1.png" height="190" width="190" align="left">
+            <p align="center">
+              <font size="5">
+       <font size="5" color="white"> PATIENTS CAN ALLOW ACCESS TO THERE HEALTH DATA ACCORDING TO THEIR CONVIENCE TO THE DATA.MESSAGING CAPABILITIES AND VIRTUAL APPOINTMENTS SO PATIENTS CAN COMMUNICATE QUICKLY WITH DOCTORS</p></font>
+            </font>
+            </div>      
+        </section>
+      
+    <!-- partial -->
+     </div>
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#myBtn").hide();
+        $('body').on('scroll', function (e){
+            $("#myBtn").show();
+            var div=$(this);
+        if(div.scrollTop() == 0)
+        {
+
+            $("#myBtn").hide();
+        }
+        });
+
+
+    });
+    </script>
+    
+
+</body>
+</html>

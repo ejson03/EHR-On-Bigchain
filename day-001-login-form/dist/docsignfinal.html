@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Day 001 Login Form</title>
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans:600'>
+<link rel="stylesheet" href="style.css">
+
+
+</head>
+<body style="background-color:powderblue;">
+	<div align="center">
+		<img src="logo1.png" height="190" width="400">
+	</div>
+<!-- partial:index.partial.html -->
+<div class="login-wrap">
+	<div class="login-html">
+			<div class="container">
+					
+				
+					<input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab">Sign In</label>
+		<input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">Sign Up</label>
+		<div class="login-form">
+			<div class="sign-in-htm">
+				<form method="POST" action="dlogin">
+				<div class="group">
+
+					<label for="user" class="label"><font size="4" color="white">Username</font></label>
+					<input id="user" type="text" class="input" name="email">
+				</div>
+				<div class="group">
+					<label for="pass" class="label"><font size="4" color="white">Password</font></label>
+					<input id="pass" type="password" class="input" data-type="password" name="pass">
+				</div>
+				<div class="group">
+					<input id="check" type="checkbox" class="check" checked>
+					<label for="check"><span class="icon"></span><font size="4"> Keep me Signed in </font></label>
+				</div>
+			
+				<div class="group">
+				<font size="8" color="red"><input type="submit" class="button" value="Sign In"></font>
+				</form>
+			</div>
+				<div class="hr"></div>
+				</div>
+				
+				
+
+			<div class="sign-up-htm">
+				<div class="group">
+					<form name="dsignup" method="POST" action="/dsignup">
+					<label for="fname" class="label"><font size="4" color="white">Firstname</font></label>
+					<input id="fname" type="text" class="input" name="fname">
+				</div>
+				<div class="group">
+					<label for="lname" class="label"><font size="4" color="white">Lastname</font></label>
+					<input id="lname" type="text" class="input" name="lname">
+				</div>
+				<div class="group">
+					<label for="mailadd" class="label"><font size="4" color="white">Email Address</font></label>
+					<input id="mailadd" type="text" class="input" name="email">
+				</div>
+				<div class="group">
+					<label for="pass" class="label"><font size="4" color="white">Password</font></label>
+					<input id="pass" type="pass" class="input" data type="password" name="pass">
+				</div>
+				<div class="group">
+					<label for="pno" class="label"><font size="4" color="white">Phone No</font></label>
+					<input id="pno" type="text" class="input" name="phone" >
+					</div>
+				
+				<div class="group">
+						<font size="8" color="white"><input type="submit" class="button" value="Sign Up"></font>
+						<font size="4" color="red">	<label for="tab-1">Already Member?</a></label></font>
+				</div>
+
+				<div class="hr"></div>
+				
+			</div>
+		</div>
+	</div>
+</div>
+<!-- partial -->
+  
+</body>
+</html>
