@@ -7,17 +7,17 @@ Access control of medical records using BigchainDB & IPFS
 What things you need to install the software and how to install them
 
 ```
-Vagrant https://www.vagrantup.com/downloads.html
-Virtualbox https://www.virtualbox.org/wiki/Downloads
+[Vagrant] (https://www.vagrantup.com/downloads.html)
+[Virtualbox] (https://www.virtualbox.org/wiki/Downloads)
 ```
 
 ### BigchainDB Setup
 
 ```
 cd setup
-mkdir bigchaindb
 vagrant up bigchaindb
 vagrant ssh bigchaindb (prompt password: vagrant)
+git clone [https://github.com/bigchaindb/bigchaindb.git](https://github.com/bigchaindb/bigchaindb.git)
 cd bigchaindb
 sudo make run (first time)
 
@@ -46,4 +46,4 @@ node open.js
 mongodb:  <ip-address>:27017
 bigchaindb:   <ip-address>:9984/api/v1
 ```
-above edits to be made in open.js, block-visualization/src/config/bdb.config.json
+
