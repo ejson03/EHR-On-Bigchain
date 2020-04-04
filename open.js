@@ -58,15 +58,6 @@ function decryptFile(text) {
     return dec;
 }
 
-// function encryptKey(publicKey, key) {
-//     var k = new Buffer(key)
-//     return crypto.publicEncrypt(publicKey, k).toString("base64");
-// }
-
-// function decryptKey(privateKey, key) {
-//     return crypto.privateDecrypt(privateKey, key)
-// }
-
 function hash(text) {
     return crypto.createHash('sha1').update(JSON.stringify(text)).digest('hex')
 }
@@ -81,6 +72,22 @@ function generateOTP() {
         OTP += digits[Math.floor(Math.random() * 10)];
     }
     return OTP;
+}
+
+function generateEmail(email, otp) {
+    var mailOptions = {
+        from: mail.email,
+        to: email,
+        subject: 'Sending Email using Node.js',
+        text: otp
+    };
+    transporter.sendMail(mailOptions, function(error, info) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
 }
 
 function BufferToStream(buffer) {
@@ -109,6 +116,45 @@ function Download(res, buffer) {
     });
 }
 
+function generateKeys() {
+    const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 4096,
+        publicKeyEncoding: {
+            type: 'pkcs1',
+            format: 'pem',
+        },
+        privateKeyEncoding: {
+            type: 'pkcs1',
+            format: 'pem',
+            cipher: 'aes-256-cbc',
+            passphrase: '',
+        },
+    })
+
+    fs.writeFileSync('keys/private.pem', privateKey)
+    fs.writeFileSync('keys/public.pem', publicKey)
+}
+
+function encryptRSA(data, publicKeyPath) {
+    const absolutePath = path.resolve(publicKeyPath)
+    const publicKey = fs.readFileSync(absolutePath, 'utf8')
+    const buffer = Buffer.from(data, 'utf8')
+    const encrypted = crypto.publicEncrypt(publicKey, buffer)
+    return encrypted.toString('base64')
+}
+
+function decryptRSA(data, privateKeyPath) {
+    const absolutePath = path.resolve(privateKeyPath)
+    const privateKey = fs.readFileSync(absolutePath, 'utf8')
+    const buffer = Buffer.from(data, 'base64')
+    const decrypted = crypto.privateDecrypt({
+            key: privateKey.toString(),
+            passphrase: '',
+        },
+        buffer,
+    )
+    return decrypted.toString('utf8')
+}
 
 async function GetFile(ipfsName) {
     const files = await ipfs.files.get(ipfsName);
@@ -119,13 +165,13 @@ async function getAsset(data, publicKey, privateKey, meta) {
     asset.forEach(item => console.log(item.id))
     var transaction = await conn.listTransactions(asset[0].id)
     console.log(transaction.length)
-        // data = {
-        //     'email': meta,
-        //     'key': encryptKey(publicKey, 'd6F3Efeq')
-        // }
+    data = {
+        'email': meta,
+        'key': encryptRSA('d6F3Efeq', 'public.pem')
+    }
     console.log(transaction[transaction.length - 1].metadata)
     metadata = transaction[transaction.length - 1].metadata
-    metadata['doclist'].push(meta)
+    metadata['doclist'].push(data)
     metdata = JSON.stringify(metadata)
     console.log("metadata is ", metadata)
 
@@ -179,24 +225,19 @@ app.post('/psignup', function(req, res) {
     req.session.dob = req.body.dob;
     req.session.gen = req.body.gen;
     req.session.phone = req.body.phone;
-    var emailtext = generateOTP();
-    console.log(emailtext);
-    req.session.otp = emailtext;
+
+    var otp = generateOTP();
+    console.log(otp);
+    req.session.otp = otp;
     var email = req.body.email;
+
     console.log(email);
-    var mailOptions = {
-        from: mail.email,
-        to: email,
-        subject: 'Sending Email using Node.js',
-        text: emailtext
-    };
-    transporter.sendMail(mailOptions, function(error, info) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
+    const key = bdb.generateKeypair(req.session.email);
+    req.session.key = key;
+    console.log(req.session.key);
+    generateKeys()
+
+    generateEmail(email, otp)
     res.sendFile(path.join('D:/Desktop/project/EHR/otp.html'));
 });
 //psignup end
@@ -208,24 +249,13 @@ app.post('/dsignup', function(req, res) {
     req.session.email = req.body.email;
     req.session.pass = req.body.pass;
     req.session.phone = req.body.phone;
-    var emailtext = generateOTP();
-    console.log(emailtext);
-    req.session.otp = emailtext;
+
+    var otp = generateOTP();
+    console.log(otp);
+    req.session.otp = otp;
     var email = req.body.email;
     console.log(email);
-    var mailOptions = {
-        from: mail.email,
-        to: email,
-        subject: 'Sending Email using Node.js',
-        text: emailtext
-    };
-    transporter.sendMail(mailOptions, function(error, info) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
+    generateEmail(email, otp)
     res.sendFile(path.join('D:/Desktop/project/EHR/otp.html'));
     // send user to the otp page
 
@@ -235,12 +265,10 @@ app.post('/dsignup', function(req, res) {
 
 //when clciked submit in otp page
 app.post('/otp', function(req, res) {
-    console.log(req.session.lname);
-    if (req.body.uotp = req.session.otp) {
+
+    if (req.body.uotp == req.session.otp) {
         var fn = encrypt(req.session.fname);
-
         console.log(fn);
-
         var ln = encrypt(req.session.lname);
         console.log(ln);
         var email = encrypt(req.session.email);
@@ -248,18 +276,15 @@ app.post('/otp', function(req, res) {
         var pass = encrypt(req.session.pass);
         console.log(pass);
         var phone = encrypt(req.session.phone);
-
-        console.log(ln);
         console.log(phone);
 
         if (req.session.dob == null) {
 
             res.sendFile(path.join('D:/Desktop/project/EHR/DoctorDetails.html'));
+
         } else {
             console.log(req.session.dob);
-
             var dob = encrypt(req.session.dob);
-
             var gen = encrypt(req.session.gen);
             MongoClient.connect(url, function(err, db) {
                 if (err) throw err;
@@ -271,6 +296,8 @@ app.post('/otp', function(req, res) {
                     db.close();
                 });
             });
+            console.log("suceesful signup...redirected shortly...");
+            res.redirect('/patientaddrec');
         }
     } else {
         console.log(req.body.uotp);
@@ -284,7 +311,7 @@ app.post('/plogin', function(req, res) {
 
     var email = encrypt(req.body.email)
     var pass = encrypt(req.body.pass);
-    req.session.email = email;
+    req.session.email = req.body.email;
     const key = bdb.generateKeypair(req.session.email);
     req.session.key = key;
     console.log(req.session.key);
@@ -294,11 +321,11 @@ app.post('/plogin', function(req, res) {
         var dbo = db.db("project");
 
         //Find the first document in the customers collection:
-        dbo.collection("psignup").findOne({ email: req.session.email }, function(err, resu) {
+        dbo.collection("psignup").findOne({ email: email }, function(err, resu) {
             if (err) throw err;
             if (email == resu.email && pass == resu.password) {
                 console.log("suceesful login...redirected shortly...");
-                res.render('D:/Desktop/project/EHR/latestpatientprof1/patientaddrec.ejs', { 'email': decrypt(req.session.email) });
+                res.render('D:/Desktop/project/EHR/latestpatientprof1/patientaddrec.ejs', { 'email': req.session.email });
 
             } else {
                 console.log("not okay");
@@ -402,25 +429,26 @@ app.get('/patientdoclist', function(req, res) {
         var db1 = db.db("project");
         db1.collection('dsignup').find({}).toArray(function(err, result) {
             if (err) throw err;
-            res.render('D:/Desktop/project/EHR/latestpatientprof1/patientdoclist.ejs', { 'docs': result, 'email': decrypt(req.session.email) });
+            res.render('D:/Desktop/project/EHR/latestpatientprof1/patientdoclist.ejs', { 'docs': result, 'email': req.session.email });
         })
     });
 })
 app.get('/patientmedhistory', function(req, res) {
-    conn.searchAssets(decrypt(req.session.email))
+    console.log(req.session.email)
+    conn.searchAssets(encrypt(req.session.email))
         .then((data) => {
             console.log(data)
-            res.render('D:/Desktop/project/EHR/latestpatientprof1/patientmedhistory.ejs', { 'doc': data, 'email': decrypt(req.session.email) });
+            res.render('D:/Desktop/project/EHR/latestpatientprof1/patientmedhistory.ejs', { 'doc': data, 'email': req.session.email });
         })
 });
 
 app.post('/access', function(req, res) {
     req.session.demail = req.body.value;
     console.log(req.session.demail)
-    conn.searchAssets(decrypt(req.session.email))
+    conn.searchAssets(encrypt(req.session.email))
         .then((data) => {
             console.log(data)
-            res.render('D:/Desktop/project/EHR/latestpatientprof1/patientaccesstrans.ejs', { 'doc': data, 'email': decrypt(req.session.email) });
+            res.render('D:/Desktop/project/EHR/latestpatientprof1/patientaccesstrans.ejs', { 'doc': data, 'email': req.session.email });
 
         })
 })
@@ -459,7 +487,7 @@ app.post('/submitrec', function(req, res) {
             var id = generateOTP();
 
             const assetdata = {
-                'email': decrypt(req.session.email),
+                'email': encrypt(req.session.email),
                 'file': a,
                 'fileHash': hash(cipher),
                 'id': id,
@@ -467,7 +495,7 @@ app.post('/submitrec', function(req, res) {
             }
 
             const metadata = {
-                'email': req.session.email,
+                'email': encrypt(req.session.email),
                 'datetime': new Date().toString(),
                 'doclist': [],
                 'id': id
@@ -491,16 +519,20 @@ app.post('/submitrec', function(req, res) {
             const conn = new driver.Connection(API_PATH)
 
             conn.postTransactionCommit(txCreateAliceSimpleSigned)
-                .then(retrievedTx => console.log('Transaction', retrievedTx.id, 'successfully posted.'))
+                .then(retrievedTx => {
+                    console.log('Transaction', retrievedTx.id, 'successfully posted.')
+                    res.redirect('/patientmedhistory')
+                })
                 // With the postTransactionCommit if the response is correct, then the transaction
                 // is valid and commited to a block
+                //res.redirect('/patientmedhistory')
 
         });
     });
 });
 
 app.get('/patientaddrec', function(req, res) {
-    res.render('D:/Desktop/project/EHR/latestpatientprof1/patientaddrec.ejs', { 'email': decrypt(req.session.email) });
+    res.render('D:/Desktop/project/EHR/latestpatientprof1/patientaddrec.ejs', { 'email': req.session.email });
 })
 
 app.post('/view', async function(req, res) {
@@ -542,73 +574,74 @@ app.post('/view', async function(req, res) {
 
 app.post('/check', function(req, res) {
 
-    var count = Object.keys(req.body).length;
-    console.log(count);
+        var count = Object.keys(req.body).length;
+        console.log(count);
 
-    for (i = 0; i < count; i++) {
-        if (req.body[i] == undefined) {
-            count++;
-        } else {
-            console.log(i);
-            console.log(req.body[i]);
-            getAsset(req.body[i], req.session.key.publicKey, req.session.key.privateKey, decrypt(req.session.demail));
+        for (i = 0; i < count; i++) {
+            if (req.body[i] == undefined) {
+                count++;
+            } else {
+                console.log(i);
+                console.log(req.body[i]);
+                getAsset(req.body[i], req.session.key.publicKey, req.session.key.privateKey, decrypt(req.session.demail))
+                    .then(data => res.redirect("/patientaddrec"))
+            }
         }
-    }
 
-})
-app.get('/revoke', function(req, res) {
-    var e = 0;
-    var rest = [];
-    var reslen = 0;
-
-    function abc(callback) {
-
-        MongoClient.connect(url, function(err, db) {
-            if (err) throw err;
-            var dbo = db.db("bigchain");
-            //Find the first document in the customers collection:
-
-            dbo.collection("metadata").find({ 'metadata.email': 'f3c3b4b656bf5b8d152087ce31825e0994f918874805020b05ff8f1e89163b03' }).toArray(function(err, result) {
-                for (var i = 0; i < result.length; i++) {
-                    var a = result[i].metadata.doclist;
-
-                    if (a.length == '0') {
-                        continue;
-
-                    } else {
-                        //console.log(result[i].metadata);
-
-                        //console.log(result);
-
-                        dbo.collection("assets").find({ 'data.id': result[i].metadata.id }).toArray(function(err, resu) {
-
-                            reslen = reslen + 1;
-
-                            rest = rest.concat(resu);
-                            callback();
-                            db.close();
-
-
-
-                        });
-                    }
-                }
-
-            });
-        });
-
-    }
-
-
-    abc(function() {
-        console.log(rest);
-
-        console.log(rest.length);
-        if (rest.length == '4') {
-            res.render('D:/Desktop/project/EHR/latestpatientprof1/patientrevokeaccess.ejs', { 'doc': rest });
-        }
     })
-})
+    // app.get('/revoke', function(req, res) {
+    //     var e = 0;
+    //     var rest = [];
+    //     var reslen = 0;
+
+//     function abc(callback) {
+
+//         MongoClient.connect(url, function(err, db) {
+//             if (err) throw err;
+//             var dbo = db.db("bigchain");
+//             //Find the first document in the customers collection:
+
+//             dbo.collection("metadata").find({ 'metadata.email': 'f3c3b4b656bf5b8d152087ce31825e0994f918874805020b05ff8f1e89163b03' }).toArray(function(err, result) {
+//                 for (var i = 0; i < result.length; i++) {
+//                     var a = result[i].metadata.doclist;
+
+//                     if (a.length == '0') {
+//                         continue;
+
+//                     } else {
+//                         //console.log(result[i].metadata);
+
+//                         //console.log(result);
+
+//                         dbo.collection("assets").find({ 'data.id': result[i].metadata.id }).toArray(function(err, resu) {
+
+//                             reslen = reslen + 1;
+
+//                             rest = rest.concat(resu);
+//                             callback();
+//                             db.close();
+
+
+
+//                         });
+//                     }
+//                 }
+
+//             });
+//         });
+
+//     }
+
+
+//     abc(function() {
+//         console.log(rest);
+
+//         console.log(rest.length);
+//         if (rest.length == '4') {
+//             res.render('D:/Desktop/project/EHR/latestpatientprof1/patientrevokeaccess.ejs', { 'doc': rest });
+//         }
+//     })
+// })
 
 //add the router
 app.use('/', router);
