@@ -43,14 +43,14 @@ const generateEmail = (email, otp) => {
     });
 }
 
-const getAsset = async(data, publicKey, privateKey, meta) => {
+const getAsset = async(data, publicKey, privateKey, meta, kpath) => {
     var asset = await conn.searchAssets(data)
     asset.forEach(item => console.log(item.id))
     var transaction = await conn.listTransactions(asset[0].id)
     console.log(transaction.length)
     data = {
         'email': meta,
-        'key': encryptRSA('d6F3Efeq', path.join(__dirname, 'keys/public.pem'))
+        'key': encryptRSA('d6F3Efeq', path.join(`keys/${dir}`, 'public.pem'))
     }
     console.log(transaction[transaction.length - 1].metadata)
     metadata = transaction[transaction.length - 1].metadata
@@ -71,6 +71,7 @@ const getAsset = async(data, publicKey, privateKey, meta) => {
     transfer = await conn.postTransactionCommit(txTransferBobSigned)
     console.log(transfer.id)
 }
+
 
 module.exports = {
     getAsset,

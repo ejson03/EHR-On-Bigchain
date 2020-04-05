@@ -45,8 +45,6 @@ app.use(session({
     saveUninitialized: true,
 }));
 
-
-
 const router = express.Router();
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -56,12 +54,9 @@ app.engine('.html', require('ejs').renderFile);
 
 //start of main
 app.get('/', function(req, res) {
-
     res.render('SampleScroll.html');
-
 });
 //end of main
-
 
 //doctor start
 app.get('/doctor', function(req, res) {
@@ -96,7 +91,7 @@ app.post('/psignup', function(req, res) {
     const key = bdb.generateKeypair(req.session.email);
     req.session.key = key;
     console.log(req.session.key);
-    generateKeys()
+    generateKeys(encrypt(req.session.email))
 
     generateEmail(email, otp)
     res.render('otp.html');
@@ -111,10 +106,17 @@ app.post('/dsignup', function(req, res) {
     req.session.pass = req.body.pass;
     req.session.phone = req.body.phone;
 
+    console.log(email);
+    const key = bdb.generateKeypair(req.session.email);
+    req.session.key = key;
+    console.log(req.session.key);
+    generateKeys(encrypt(req.session.email))
+
     var otp = generateOTP();
     console.log(otp);
     req.session.otp = otp;
     var email = req.body.email;
+
     console.log(email);
     generateEmail(email, otp)
     res.render('otp.html');
@@ -199,12 +201,14 @@ app.post('/plogin', function(req, res) {
 
 });
 
-
-
 app.post('/dlogin', function(req, res) {
     var email = encrypt(req.body.email);
     var pass = encrypt(req.body.pass);
     console.log(email);
+    req.session.email = req.body.email;
+    const key = bdb.generateKeypair(req.session.email);
+    req.session.key = key;
+    console.log(req.session.key);
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
         var dbo = db.db("project");
@@ -221,12 +225,7 @@ app.post('/dlogin', function(req, res) {
         });
         db.close();
     });
-
-
-    res.render('DoctorDetails.html');
 });
-
-
 
 app.post('/dsave', function(req, res) {
     var fn = req.session.fname;
@@ -375,8 +374,6 @@ app.post('/submitrec', function(req, res) {
             const txCreateAliceSimpleSigned = driver.Transaction.signTransaction(txCreateAliceSimple, req.session.key.privateKey)
 
             // Send the transaction off to BigchainDB
-            const conn = new driver.Connection(API_PATH)
-
             conn.postTransactionCommit(txCreateAliceSimpleSigned)
                 .then(retrievedTx => {
                     console.log('Transaction', retrievedTx.id, 'successfully posted.')
@@ -433,73 +430,23 @@ app.post('/view', async function(req, res) {
 
 app.post('/check', function(req, res) {
 
-        var count = Object.keys(req.body).length;
-        console.log(count);
+    var count = Object.keys(req.body).length;
+    console.log(count);
 
-        for (i = 0; i < count; i++) {
-            if (req.body[i] == undefined) {
-                count++;
-            } else {
-                console.log(i);
-                console.log(req.body[i]);
-                getAsset(req.body[i], req.session.key.publicKey, req.session.key.privateKey, decrypt(req.session.demail))
-                    .then(data => res.redirect("/patientaddrec"))
-            }
+    for (i = 0; i < count; i++) {
+        if (req.body[i] == undefined) {
+            count++;
+        } else {
+            console.log(i);
+            console.log(req.body[i]);
+            getAsset(req.body[i], req.session.key.publicKey, req.session.key.privateKey, req.session.demail, encrypt(req.session.email))
+                .then(data => res.redirect("/patientaddrec"))
         }
+    }
+})
 
-    })
-    // app.get('/revoke', function(req, res) {
-    //     var e = 0;
-    //     var rest = [];
-    //     var reslen = 0;
-
-//     function abc(callback) {
-
-//         MongoClient.connect(url, function(err, db) {
-//             if (err) throw err;
-//             var dbo = db.db("bigchain");
-//             //Find the first document in the customers collection:
-
-//             dbo.collection("metadata").find({ 'metadata.email': 'f3c3b4b656bf5b8d152087ce31825e0994f918874805020b05ff8f1e89163b03' }).toArray(function(err, result) {
-//                 for (var i = 0; i < result.length; i++) {
-//                     var a = result[i].metadata.doclist;
-
-//                     if (a.length == '0') {
-//                         continue;
-
-//                     } else {
-//                         //console.log(result[i].metadata);
-
-//                         //console.log(result);
-
-//                         dbo.collection("assets").find({ 'data.id': result[i].metadata.id }).toArray(function(err, resu) {
-
-//                             reslen = reslen + 1;
-
-//                             rest = rest.concat(resu);
-//                             callback();
-//                             db.close();
-
-
-
-//                         });
-//                     }
-//                 }
-
-//             });
-//         });
-
-//     }
-
-
-//     abc(function() {
-//         console.log(rest);
-
-//         console.log(rest.length);
-//         if (rest.length == '4') {
-//             res.render('patientrevokeaccess.ejs', { 'doc': rest });
-//         }
-//     })
+// app.get('/docrec', function(rq, res) {
+//     var metadata =
 // })
 
 //add the router
