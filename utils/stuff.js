@@ -2,7 +2,7 @@ const API_PATH = 'http://192.168.33.160:9984/api/v1/'
 const driver = require('bigchaindb-driver')
 const bdb = require('easy-bigchain')
 const conn = new driver.Connection(API_PATH)
-var { encryptRSA } = require("./utils/crypto")
+var { encryptRSA } = require("./crypto.js")
 
 let mail = require('./email.json');
 var nodemailer = require('nodemailer');
