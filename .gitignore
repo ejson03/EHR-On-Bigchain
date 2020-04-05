@@ -1,2 +1,3 @@
 node_modules
-email.json
+./utils/email.json
+keys
