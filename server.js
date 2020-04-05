@@ -57,7 +57,7 @@ app.engine('.html', require('ejs').renderFile);
 //start of main
 app.get('/', function(req, res) {
 
-    res.sendFile('SampleScroll.html');
+    res.render('SampleScroll.html');
 
 });
 //end of main
@@ -65,13 +65,13 @@ app.get('/', function(req, res) {
 
 //doctor start
 app.get('/doctor', function(req, res) {
-    res.sendFile('docsignfinal.html');
+    res.render('docsignfinal.html');
 });
 // doc end
 
 //patient start
 app.get('/paitent', function(req, res) {
-    res.sendFile('patientsignfinal.html');
+    res.render('patientsignfinal.html');
 });
 //patient end
 
@@ -99,7 +99,7 @@ app.post('/psignup', function(req, res) {
     generateKeys()
 
     generateEmail(email, otp)
-    res.sendFile('otp.html');
+    res.render('otp.html');
 });
 //psignup end
 
@@ -117,7 +117,7 @@ app.post('/dsignup', function(req, res) {
     var email = req.body.email;
     console.log(email);
     generateEmail(email, otp)
-    res.sendFile('otp.html');
+    res.render('otp.html');
     // send user to the otp page
 
 });
@@ -141,7 +141,7 @@ app.post('/otp', function(req, res) {
 
         if (req.session.dob == null) {
 
-            res.sendFile('DoctorDetails.html');
+            res.render('DoctorDetails.html');
 
         } else {
             console.log(req.session.dob);
@@ -213,7 +213,7 @@ app.post('/dlogin', function(req, res) {
             if (err) throw err;
             console.log(result);
             if (email == result.email && pass == result.password) {
-                res.sendFile('patientaddrec.html');
+                res.render('patientaddrec.html');
                 console.log("hello");
             } else {
                 console.log("not okay");
@@ -223,7 +223,7 @@ app.post('/dlogin', function(req, res) {
     });
 
 
-    res.sendFile('DoctorDetails.html');
+    res.render('DoctorDetails.html');
 });
 
 
@@ -314,7 +314,7 @@ app.post('/access', function(req, res) {
 
 app.post('/logout', function(req, res) {
     req.session.destroy();
-    res.sendFile('SampleScroll.html');
+    res.render('SampleScroll.html');
 })
 
 app.post('/submitrec', function(req, res) {

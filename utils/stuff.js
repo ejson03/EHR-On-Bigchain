@@ -50,7 +50,7 @@ const getAsset = async(data, publicKey, privateKey, meta) => {
     console.log(transaction.length)
     data = {
         'email': meta,
-        'key': encryptRSA('d6F3Efeq', 'public.pem')
+        'key': encryptRSA('d6F3Efeq', path.join(__dirname, 'keys/public.pem'))
     }
     console.log(transaction[transaction.length - 1].metadata)
     metadata = transaction[transaction.length - 1].metadata
