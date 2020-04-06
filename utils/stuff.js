@@ -1,81 +1,189 @@
 const API_PATH = 'http://192.168.33.160:9984/api/v1/'
 const driver = require('bigchaindb-driver')
-const bdb = require('easy-bigchain')
 const conn = new driver.Connection(API_PATH)
-var { encryptRSA } = require("./crypto.js")
+let { encryptRSA, encrypt, hash } = require("./crypto.js")
+const path = require('path');
+const fs = require('fs');
+const ipfsAPI = require('ipfs-api');
+const ipfs = ipfsAPI('ipfs.infura.io', '5001', { protocol: 'https' })
+
 
 let mail = require('./email.json');
-var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport({
+let nodemailer = require('nodemailer');
+let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: mail.email,
         pass: mail.password
     }
 });
-//const func1 = ()=>{some code here}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 const generateOTP = () => {
 
-    // Declare a digits variable  
-    // which stores all digits 
-    var digits = '0123456789';
-    let OTP = '';
-    for (let i = 0; i < 4; i++) {
-        OTP += digits[Math.floor(Math.random() * 10)];
-    }
-    return OTP;
-}
-
-const generateEmail = (email, otp) => {
-    var mailOptions = {
-        from: mail.email,
-        to: email,
-        subject: 'Sending Email using Node.js',
-        text: otp
-    };
-    transporter.sendMail(mailOptions, function(error, info) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
+        // Declare a digits letiable  
+        // which stores all digits 
+        let digits = '0123456789';
+        let OTP = '';
+        for (let i = 0; i < 4; i++) {
+            OTP += digits[Math.floor(Math.random() * 10)];
         }
-    });
-}
-
-const getAsset = async(data, publicKey, privateKey, meta, kpath) => {
-    var asset = await conn.searchAssets(data)
-    asset.forEach(item => console.log(item.id))
-    var transaction = await conn.listTransactions(asset[0].id)
-    console.log(transaction.length)
-    data = {
-        'email': meta,
-        'key': encryptRSA('d6F3Efeq', path.join(`keys/${dir}`, 'public.pem'))
+        return OTP;
     }
-    console.log(transaction[transaction.length - 1].metadata)
-    metadata = transaction[transaction.length - 1].metadata
-    metadata['doclist'].push(data)
-    metdata = JSON.stringify(metadata)
-    console.log("metadata is ", metadata)
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+const generateEmail = (email, otp) => {
+        let mailOptions = {
+            from: mail.email,
+            to: email,
+            subject: 'Sending Email using Node.js',
+            text: otp
+        };
+        transporter.sendMail(mailOptions, function(error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const createAccess = async(data, publicKey, privateKey, meta, kpath) => {
+        let asset = await conn.searchAssets(data)
+        asset.forEach(item => console.log(item.id))
+        let transaction = await conn.listTransactions(asset[0].id)
+        console.log(transaction.length)
+        data = {
+            'email': meta,
+            'key': encryptRSA('d6F3Efeq', path.join(`keys/${kpath}`, 'public.pem'))
+        }
+        console.log(transaction[transaction.length - 1].metadata)
+        metadata = transaction[transaction.length - 1].metadata
+        metadata['doclist'].push(data)
+        metdata = JSON.stringify(metadata)
+        console.log("metadata is ", metadata)
+
+        const txTransferBob = driver.Transaction.makeTransferTransaction(
+
+                [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
+                metadata
+            )
+            // Sign with alice's private key
+        let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
+
+        // Post with commit so transaction is validated and included in a block
+        transfer = await conn.postTransactionCommit(txTransferBobSigned)
+        console.log(transfer.id)
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const revokeAccess = async(data, publicKey, privateKey, meta) => {
+        let asset = await conn.searchAssets(data)
+        asset.forEach(item => console.log(item.id))
+        let transaction = await conn.listTransactions(asset[0].id)
+        console.log(transaction[transaction.length - 1].metadata)
+        let metadata = transaction[transaction.length - 1].metadata
+        let doclist = metadata.doclist
+        console.log("Before", doclist.length)
+        doclist = doclist.filter(item => item.email != meta)
+        console.log("After", doclist.length)
+        metadata.doclist = doclist
+        metdata = JSON.stringify(metadata)
+        console.log("metadata is ", metadata)
 
 
-    const txTransferBob = driver.Transaction.makeTransferTransaction(
+        const txTransferBob = driver.Transaction.makeTransferTransaction(
 
-            [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
-            metadata
+                [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
+                metadata
+            )
+            // Sign with alice's private key
+        let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
+
+        // Post with commit so transaction is validated and included in a block
+        transfer = await conn.postTransactionCommit(txTransferBobSigned)
+        console.log(transfer.id)
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const showAccess = async(demail, email) => {
+        let assets = await conn.searchAssets(encrypt(email))
+        let data = []
+        for (const asset of assets) {
+            transaction = await conn.listTransactions(asset.id)
+            doclist = transaction[transaction.length - 1].metadata.doclist
+            let result = doclist.filter(st => st.email.includes(demail))
+            if (result.length == 0) {
+                data.push(asset)
+            }
+        }
+        return data
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const showRevoke = async(demail, email) => {
+        let assets = await conn.searchAssets(encrypt(email))
+        let data = []
+
+        for (const asset of assets) {
+            transaction = await conn.listTransactions(asset.id)
+            doclist = transaction[transaction.length - 1].metadata.doclist
+            let result = doclist.filter(st => st.email.includes(demail))
+            if (result.length != 0) {
+                data.push(asset)
+            }
+        }
+        return data
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const createAsset = async(data, email, fpath, publicKey, privateKey) => {
+        let file = fs.readFileSync(fpath);
+        let cipher = encrypt(file);
+        let fileBuffer = new Buffer(cipher);
+
+        let fileIPFS = await ipfs.files.add(fileBuffer)
+        console.log("IPFS hash: ", fileIPFS[0].hash);
+        let fileIPFSEncrypted = encrypt(fileIPFS[0].hash);
+        let id = generateOTP();
+
+        data['email'] = encrypt(email)
+        data['file'] = fileIPFSEncrypted
+        data['fileHash'] = hash(cipher)
+        data['id'] = id
+
+
+        const metadata = {
+            'email': encrypt(email),
+            'datetime': new Date().toString(),
+            'doclist': [],
+            'id': id
+        }
+
+        // Construct a transaction payload
+        const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
+            data,
+            metadata,
+
+            // A transaction needs an output
+            [driver.Transaction.makeOutput(
+                driver.Transaction.makeEd25519Condition(publicKey))],
+            publicKey
         )
-        // Sign with alice's private key
-    let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
 
-    // Post with commit so transaction is validated and included in a block
-    transfer = await conn.postTransactionCommit(txTransferBobSigned)
-    console.log(transfer.id)
-}
+        // Sign the transaction with private keys of Alice to fulfill it
+        const txCreateAliceSimpleSigned = driver.Transaction.signTransaction(txCreateAliceSimple, privateKey)
 
-
+        // Send the transaction off to BigchainDB
+        tx = await conn.postTransactionCommit(txCreateAliceSimpleSigned)
+        return tx
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 module.exports = {
-    getAsset,
+    createAccess,
+    revokeAccess,
     generateEmail,
-    generateOTP
+    generateOTP,
+    showAccess,
+    showRevoke,
+    createAsset
 
 }

@@ -1,17 +1,17 @@
-var crypto = require('crypto');
-var path = require('path')
+let crypto = require('crypto');
+let path = require('path')
 const fs = require('fs');
 
 const encrypt = (text) => {
-    var cipher = crypto.createCipher('aes-256-cbc', 'd6F3Efeq')
-    var crypted = cipher.update(text, 'utf8', 'hex')
+    let cipher = crypto.createCipher('aes-256-cbc', 'd6F3Efeq')
+    let crypted = cipher.update(text, 'utf8', 'hex')
     crypted += cipher.final('hex');
     return crypted;
 }
 
 const decrypt = (text) => {
-    var decipher = crypto.createDecipher('aes-256-cbc', 'd6F3Efeq')
-    var dec = decipher.update(text, 'hex', 'utf8')
+    let decipher = crypto.createDecipher('aes-256-cbc', 'd6F3Efeq')
+    let dec = decipher.update(text, 'hex', 'utf8')
     dec += decipher.final('utf8');
     return dec;
 }
@@ -19,8 +19,8 @@ const decrypt = (text) => {
 
 
 const decryptFile = (text) => {
-    var decipher = crypto.createDecipher('aes-256-cbc', 'd6F3Efeq')
-    var dec = decipher.update(text, 'hex', 'binary')
+    let decipher = crypto.createDecipher('aes-256-cbc', 'd6F3Efeq')
+    let dec = decipher.update(text, 'hex', 'binary')
     dec += decipher.final('binary');
     return dec;
 }
@@ -51,6 +51,7 @@ const generateKeys = (dir) => {
 
 const encryptRSA = (data, publicKeyPath) => {
     const absolutePath = path.resolve(publicKeyPath)
+    console.log(absolutePath)
     const publicKey = fs.readFileSync(absolutePath, 'utf8')
     const buffer = Buffer.from(data, 'utf8')
     const encrypted = crypto.publicEncrypt(publicKey, buffer)

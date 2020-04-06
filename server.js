@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
-var http = require('http');
-var formidable = require('formidable');
+let http = require('http');
+let formidable = require('formidable');
 const {
     encrypt,
     decrypt,
@@ -14,14 +14,18 @@ const {
     GetFile
 } = require("./utils/ipfs.js")
 const {
-    getAsset,
+    createAccess,
+    revokeAccess,
     generateEmail,
-    generateOTP
+    generateOTP,
+    showAccess,
+    showRevoke,
+    createAsset
 } = require("./utils/stuff.js")
 
 // mongo connection
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://192.168.33.160:27017/";
+let MongoClient = require('mongodb').MongoClient;
+let url = "mongodb://192.168.33.160:27017/";
 
 // ipfs connection
 const ipfsAPI = require('ipfs-api');
@@ -34,16 +38,22 @@ const bdb = require('easy-bigchain')
 const conn = new driver.Connection(API_PATH)
 
 const express = require('express');
-var bodyParser = require('body-parser');
+let bodyParser = require('body-parser');
 const app = express();
-var session = require('express-session')
+var cookieSession = require('cookie-session')
+    //let session = require('express-session')
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(session({
+// app.use(session({
+//     secret: 'ssshhhhh',
+//     resave: false,
+//     saveUninitialized: true,
+// }));
+app.use(cookieSession({
+    name: 'session',
     secret: 'ssshhhhh',
-    resave: false,
-    saveUninitialized: true,
-}));
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 const router = express.Router();
 
@@ -84,10 +94,10 @@ app.post('/psignup', function(req, res) {
     req.session.gen = req.body.gen;
     req.session.phone = req.body.phone;
 
-    var otp = generateOTP();
+    let otp = generateOTP();
     console.log(otp);
     req.session.otp = otp;
-    var email = req.body.email;
+    let email = req.body.email;
 
     console.log(email);
     const key = bdb.generateKeypair(req.session.email);
@@ -113,10 +123,10 @@ app.post('/dsignup', function(req, res) {
     console.log(req.session.key);
     generateKeys(encrypt(req.session.email))
 
-    var otp = generateOTP();
+    let otp = generateOTP();
     console.log(otp);
     req.session.otp = otp;
-    var email = req.body.email;
+    let email = req.body.email;
 
     console.log(email);
     generateEmail(email, otp)
@@ -136,17 +146,17 @@ app.post('/otp', function(req, res) {
             res.render('DoctorDetails.html');
 
         } else {
-            var fn = encrypt(req.session.fname);
-            var ln = encrypt(req.session.lname);
-            var email = encrypt(req.session.email);
-            var pass = encrypt(req.session.pass);
-            var phone = encrypt(req.session.phone);
-            var dob = encrypt(req.session.dob);
-            var gen = encrypt(req.session.gen);
+            let fn = encrypt(req.session.fname);
+            let ln = encrypt(req.session.lname);
+            let email = encrypt(req.session.email);
+            let pass = encrypt(req.session.pass);
+            let phone = encrypt(req.session.phone);
+            let dob = encrypt(req.session.dob);
+            let gen = encrypt(req.session.gen);
             MongoClient.connect(url, function(err, db) {
                 if (err) throw err;
-                var dbo = db.db("project");
-                var myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, dob: dob, gen: gen };
+                let dbo = db.db("project");
+                let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, dob: dob, gen: gen };
                 dbo.collection("psignup").insertOne(myobj, function(err, res) {
                     if (err) throw err
                     console.log("1 document inserted");
@@ -166,8 +176,8 @@ app.post('/otp', function(req, res) {
 
 app.post('/plogin', function(req, res) {
 
-    var email = encrypt(req.body.email)
-    var pass = encrypt(req.body.pass);
+    let email = encrypt(req.body.email)
+    let pass = encrypt(req.body.pass);
     req.session.email = req.body.email;
     const key = bdb.generateKeypair(req.session.email);
     req.session.key = key;
@@ -175,7 +185,7 @@ app.post('/plogin', function(req, res) {
 
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
-        var dbo = db.db("project");
+        let dbo = db.db("project");
 
         //Find the first document in the customers collection:
         dbo.collection("psignup").findOne({ email: email }, function(err, resu) {
@@ -196,8 +206,8 @@ app.post('/plogin', function(req, res) {
 });
 
 app.post('/dlogin', function(req, res) {
-    var email = encrypt(req.body.email);
-    var pass = encrypt(req.body.pass);
+    let email = encrypt(req.body.email);
+    let pass = encrypt(req.body.pass);
     console.log(email);
     req.session.email = req.body.email;
     const key = bdb.generateKeypair(req.session.email);
@@ -205,7 +215,7 @@ app.post('/dlogin', function(req, res) {
     console.log(req.session.key);
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
-        var dbo = db.db("project");
+        let dbo = db.db("project");
         //Find the first document in the customers collection:
         dbo.collection("dsignup").findOne({ email: email }, function(err, result) {
             if (err) throw err;
@@ -222,28 +232,28 @@ app.post('/dlogin', function(req, res) {
 });
 
 app.post('/dsave', function(req, res) {
-    var spl = req.body.spl;
+    let spl = req.body.spl;
     console.log(spl);
-    var wh1 = req.body.wh1;
+    let wh1 = req.body.wh1;
     console.log(wh1);
-    var gen = req.body.gender;
+    let gen = req.body.gender;
     console.log(gen);
-    var cw = req.body.cw;
+    let cw = req.body.cw;
     console.log(cw);
-    var qual = req.body.qual;
+    let qual = req.body.qual;
     console.log(qual);
 
 
-    var fn = encrypt(req.session.fname)
-    var ln = encrypt(req.session.lname);
-    var email = encrypt(req.session.email);
-    var pass = encrypt(req.session.pass);
-    var phone = encrypt(req.session.phone);
+    let fn = req.session.fname
+    let ln = req.session.lname;
+    let email = encrypt(req.session.email);
+    let pass = encrypt(req.session.pass);
+    let phone = encrypt(req.session.phone);
 
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
-        var dbo = db.db("project");
-        var myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, cw: cw, gen: gen, spl: spl, qual: qual };
+        let dbo = db.db("project");
+        let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, cw: cw, gen: gen, spl: spl, qual: qual };
         dbo.collection("dsignup").insertOne(myobj, function(err, res) {
             if (err) throw err
             console.log("1 document inserted");
@@ -253,106 +263,89 @@ app.post('/dsave', function(req, res) {
 
     });
 })
-app.get('/patientdoclist', function(req, res) {
+app.get('/patientaccdoclist', function(req, res) {
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
-        var db1 = db.db("project");
+        let db1 = db.db("project");
         db1.collection('dsignup').find({}).toArray(function(err, result) {
             if (err) throw err;
-            res.render('patientdoclist.ejs', { 'docs': result, 'email': req.session.email });
+            console.log(result)
+            res.render('patientaccdoclist.ejs', { 'docs': result, 'email': req.session.email });
         })
     });
 })
-app.get('/patientmedhistory', function(req, res) {
-    console.log(req.session.email)
-    conn.searchAssets(encrypt(req.session.email))
-        .then((data) => {
-            console.log(data)
-            res.render('patientmedhistory.ejs', { 'doc': data, 'email': req.session.email });
+
+app.get('/patientrevdoclist', function(req, res) {
+    MongoClient.connect(url, function(err, db) {
+        if (err) throw err;
+        let db1 = db.db("project");
+        db1.collection('dsignup').find({}).toArray(function(err, result) {
+            if (err) throw err;
+            console.log(result)
+            res.render('patientrevdoclist.ejs', { 'docs': result, 'email': req.session.email });
         })
+    });
+})
+
+app.get('/patientmedhistory', function(req, res) {
+    console.log(req.session.email);
+    (async() => {
+        let data = await conn.searchAssets(encrypt(req.session.email))
+        console.log(data)
+        res.render('patientmedhistory.ejs', { 'doc': data, 'email': req.session.email });
+    })();
+
 });
 
 app.post('/access', function(req, res) {
     req.session.demail = req.body.value;
-    console.log(req.session.demail)
-    conn.searchAssets(encrypt(req.session.email))
-        .then((data) => {
-            console.log(data)
-            res.render('patientaccesstrans.ejs', { 'doc': data, 'email': req.session.email });
+    console.log(req.session.demail);
+    (async() => {
+        let data = await showAccess(req.session.demail, req.session.email)
+            // console.log("access data is....", data)
+        res.render('patientaccesstrans.ejs', { 'doc': data, 'email': req.session.email });
+    })();
 
-        })
+})
+app.post('/revoke', function(req, res) {
+    req.session.demail = req.body.value;
+    (async() => {
+        let data = await showRevoke(req.session.demail, req.session.email)
+            // console.log("revoke data is....", data)
+        res.render('patientrevoketrans.ejs', { 'doc': data, 'email': req.session.email });
+    })()
 })
 
+
 app.post('/logout', function(req, res) {
-    req.session.destroy();
+    req.session = null;
     res.render('SampleScroll.html');
 })
 
 app.post('/submitrec', function(req, res) {
     new formidable.IncomingForm().parse(req, (err, fields, files) => {
-        console.log("hello");
         if (err) {
             console.error('Error', err)
             throw err
         }
-        console.log("heyy");
-        var fpath = files.fileupload.path;
+        let fpath = files.fileupload.path;
         console.log(fpath);
         console.log(fields.d);
 
-        //Reading file from computer
-        let file = fs.readFileSync(fpath);
-        //Creating buffer for ipfs function to add file to the system
-        let cipher = encrypt(file);
-        let fileBuffer = new Buffer(cipher);
-
-        //Addfile router for adding file a local file to the IPFS network without any local node
-
-        ipfs.files.add(fileBuffer, function(err, filee) {
-            if (err) {
-                console.log(err);
-            }
-            console.log(filee[0].hash);
-            var a = encrypt(filee[0].hash);
-            var id = generateOTP();
-
-            const assetdata = {
-                'email': encrypt(req.session.email),
-                'file': a,
-                'fileHash': hash(cipher),
-                'id': id,
-                'description': fields.d,
-            }
-
-            const metadata = {
-                'email': encrypt(req.session.email),
-                'datetime': new Date().toString(),
-                'doclist': [],
-                'id': id
-            }
-
-            // Construct a transaction payload
-            const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
-                assetdata,
-                metadata,
-
-                // A transaction needs an output
-                [driver.Transaction.makeOutput(
-                    driver.Transaction.makeEd25519Condition(req.session.key.publicKey))],
-                req.session.key.publicKey
-            )
-
-            // Sign the transaction with private keys of Alice to fulfill it
-            const txCreateAliceSimpleSigned = driver.Transaction.signTransaction(txCreateAliceSimple, req.session.key.privateKey)
-
-            // Send the transaction off to BigchainDB
-            conn.postTransactionCommit(txCreateAliceSimpleSigned)
-                .then(retrievedTx => {
-                    console.log('Transaction', retrievedTx.id, 'successfully posted.')
-                    res.redirect('/patientmedhistory')
-                })
-
-        });
+        let data = {
+            'height': encrypt(fields.height),
+            'weight': encrypt(fields.weight),
+            'symptoms': encrypt(fields.symptoms),
+            'allergies': encrypt(fields.allergies),
+            'smoking': encrypt(fields.smoking),
+            'exercise': encrypt(fields.exercise),
+            'description': fields.d
+        };
+        (async() => {
+            let tx = await createAsset(data, req.session.email, fpath, req.session.key.publicKey, req.session.key.privateKey)
+            console.log('Transaction', tx.id, 'successfully posted.')
+            res.redirect('/patientmedhistory')
+        })();
     });
 });
 
@@ -362,23 +355,10 @@ app.get('/patientaddrec', function(req, res) {
 
 app.post('/view', async function(req, res) {
     console.log(req.body);
-    var url = 'https://ipfs.io/ipfs/'
-    var url1 = decrypt(req.body.b);
-    var url2 = url + url1;
+    let url = 'https://ipfs.io/ipfs/'
+    let url1 = decrypt(req.body.b);
+    let url2 = url + url1;
     console.log(url2)
-        // ipfs.files.get(url1, function(err, file) {
-        //         if (err) {
-        //             console.log(err);
-        //         }
-        //         let data = file[0].content
-        //         let buffer = decryptFile(data.toString('utf-8'))
-        //         console.log(buffer)
-        //         fs.writeFileSync('./tmp/output.pdf', buffer, 'binary');
-        //     })
-        //     open(url2, function(err) {
-        //         if (err) throw err;
-        //     });
-        //     res.end()
 
     try {
         let buffer = await GetFile(url1);
@@ -399,7 +379,7 @@ app.post('/view', async function(req, res) {
 
 app.post('/check', function(req, res) {
 
-    var count = Object.keys(req.body).length;
+    let count = Object.keys(req.body).length;
     console.log(count);
 
     for (i = 0; i < count; i++) {
@@ -408,14 +388,35 @@ app.post('/check', function(req, res) {
         } else {
             console.log(i);
             console.log(req.body[i]);
-            getAsset(req.body[i], req.session.key.publicKey, req.session.key.privateKey, req.session.demail, encrypt(req.session.email))
-                .then(data => res.redirect("/patientaddrec"))
+            (async() => {
+                await createAccess(req.body[i], req.session.key.publicKey, req.session.key.privateKey, req.session.demail, encrypt(req.session.email))
+                res.redirect("/patientaddrec")
+            })();
+        }
+    }
+})
+
+app.post('/uncheck', function(req, res) {
+
+    let count = Object.keys(req.body).length;
+    console.log(count);
+
+    for (i = 0; i < count; i++) {
+        if (req.body[i] == undefined) {
+            count++;
+        } else {
+            console.log(i);
+            console.log(req.body[i]);
+            (async() => {
+                await revokeAccess(req.body[i], req.session.key.publicKey, req.session.key.privateKey, req.session.demail)
+                res.redirect("/patientaddrec")
+            })();
         }
     }
 })
 
 app.get('/doclist', async function(req, res) {
-    var metadata = await conn.searchMetadata(encrypt(req.session.email))
+    let metadata = await conn.searchMetadata(encrypt(req.session.email))
     data = []
     metadata.forEach(item => {
         transaction = conn.listTransactions(item.id)

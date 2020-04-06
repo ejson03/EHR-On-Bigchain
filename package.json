@@ -18,6 +18,7 @@
   "homepage": "https://github.com/04rahul/EHR#readme",
   "dependencies": {
     "bigchaindb-driver": "^4.1.2",
+    "cookie-session": "^1.4.0",
     "crypto": "^1.0.1",
     "easy-bigchain": "^1.0.1",
     "ejs": "^3.0.2",

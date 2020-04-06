@@ -9,7 +9,7 @@
                 <div class="card card-4">
                     <div class="card-body">
                         <h2 class="title" id="addreco" style="font-size:40px;font-weight: bold; color:#000000;">My Medical Records</h2>
-                        <form method="POST">
+                        <form method="post" action="/submitrec" enctype="multipart/form-data">
                             <div class="row row-space">
                                 <div class="col-2">
                                     <div class="input-group">
@@ -27,59 +27,29 @@
                             <div class="row row-space">
                                 <div class="col-2">
                                     <div class="input-group">
-                                        <label class="label">illness</label>
-                                        <input class="input--style-4" type="text" name="illness">
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="input-group">
                                         <label class="label">symptoms</label>
                                         <input class="input--style-4" type="text" name="symptoms">
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row row-space">
                                 <div class="col-2">
                                     <div class="input-group">
-                                        <label class="label">allergies(if any)</label>
+                                        <label class="label">allergies</label>
                                         <input class="input--style-4" type="text" name="allergies">
                                     </div>
                                 </div>
-                                <div class="col-2">
-                                    <div class="input-group">
-                                        <label class="label">Current Medication</label>
-                                        <input class="input--style-4" type="text" name="cmedi">
-                                    </div>
-                                </div>
                             </div>
-                            <div class="row row-space">
-                                <div class="col-2">
-                                    <div class="input-group">
-                                        <label class="label">last consultation with</label>
-                                        <input class="input--style-4" type="text" name="allergies">
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="input-group">
-                                        <label class="label">last consultation date</label>
-                                        <div class="input-group-icon">
-                                            <input class="input--style-4 js-datepicker" type="text" name="lastconsdate">
-                                            <i class="zmdi zmdi-calendar-note input-icon js-btn-calendar"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
                             <div class="row row-space">
                                 <div class="col-2">
                                     <div class="input-group">
                                         <label class="label">smoking</label>
                                         <div class="p-t-10">
                                             <label class="radio-container m-r-45">Yes
-                                            <input type="radio"  name="response1">
+                                            <input type="radio"  name="smoking" value="yes">
                                             <span class="checkmark"></span>
                                         </label>
                                             <label class="radio-container">No
-                                            <input type="radio"  checked="checked"name="response1">
+                                            <input type="radio"  checked="checked" name="smoking" value="no">
                                             <span class="checkmark"></span>
                                         </label>
                                         </div>
@@ -90,40 +60,27 @@
                                         <label class="label">Do you Exercise? </label>
                                         <div class="p-t-10">
                                             <label class="radio-container m-r-45">Yes
-                                            <input type="radio" checked="checked" name="response2">
+                                            <input type="radio" checked="checked" name="exercise" value="yes">
                                             <span class="checkmark"></span>
                                         </label>
                                             <label class="radio-container">No
-                                            <input type="radio" name="response2">
+                                            <input type="radio" name="exercise" value="no">
                                             <span class="checkmark"></span>
                                         </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-t-15">
-                                <button class="btn btn--radius-2 btn--blue" type="submit">Submit</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!--Upload Medical Records-->
-        <div class="transbox" style="opacity: 0.6;filter: alpha(opacity=60);position:absolute; left:500px; top:1000px;height:1000px; width:1000px  ">
-            <div class="wrapper wrapper--w680">
-                <div class="card card-4">
-                    <div class="card-body">
-                        <h2 class="title" id="addreco" style="font-size:40px;font-weight: bold; color:#000000;">Upload Medical Reports</h2>
-                        <form method="post" action="/submitrec" enctype="multipart/form-data">
                             <div class="row row-space">
                                 <div class="col-2">
 
                                     <div class="input-group">
 
+                                        <label class="label">File Description </label>
 
                                         <input type="text" name="d" class="input--style-4" style="border: solid; font-size: 20px;color: #31313;">
+
+                                        <label class="label">Upload File</label>
 
                                         <input type="file" name="fileupload"><br><br>
                                     </div>
@@ -131,21 +88,23 @@
                             </div>
                             <div class="p-t-15">
                                 <button class="btn btn--radius-2 btn--blue" type="submit">Submit</button>
-                        </form>
-                        </div>
+                            </div>
 
+                        </form>
                     </div>
                 </div>
             </div>
-            <!-- Jquery JS-->
-            <script src="/vendor/jquery/jquery.min.js"></script>
-            <!-- Vendor JS-->
-            <script src="/vendor/select2/select2.min.js"></script>
-            <script src="/vendor/datepicker/moment.min.js"></script>
-            <script src="/vendor/datepicker/daterangepicker.js"></script>
+        </div>
 
-            <!-- Main JS-->
-            <script src="/js/global.js"></script>
+        <!-- Jquery JS-->
+        <script src="/vendor/jquery/jquery.min.js"></script>
+        <!-- Vendor JS-->
+        <script src="/vendor/select2/select2.min.js"></script>
+        <script src="/vendor/datepicker/moment.min.js"></script>
+        <script src="/vendor/datepicker/daterangepicker.js"></script>
+
+        <!-- Main JS-->
+        <script src="/js/global.js"></script>
     </body>
 
 </html>
