@@ -9,7 +9,6 @@
 </head>
 
 <body>
-    <!-- partial:index.partial.html -->
     <div class="login-wrap">
         <div class="login-html">
             <div class="container">
@@ -20,80 +19,47 @@
                 <input id="tab-1" type="radio" name="tab" class="sign-in" checked><label for="tab-1" class="tab"></label>
                 <input id="tab-2" type="radio" name="tab" class="sign-up" checked><label for="tab-2" class="tab"></label>
                 <div class="login-form">
-                    <div class="sign-in-htm">
-                        <div class="group">
-                            <label for="user" class="label"><font size="4" color="white">Username</font></label>
-                            <input id="user" type="text" class="input">
-                        </div>
-                        <div class="group">
-                            <label for="pass" class="label"><font size="4" color="white">Password</font></label>
-                            <input id="pass" type="password" class="input" data-type="password">
-                        </div>
-                        <div class="group">
-                            <font size="8" color="red"><input type="submit" class="button" value="Sign In"></font>
-                        </div>
-                        <div class="hr"></div>
-                        <div class="foot-lnk">
-                            <a href="#forgot">
-                                <font size="4" color="red">Forgot Password?</font>
-                            </a>
-                        </div>
-                    </div>
                     <div class="sign-up-htm">
-                        <div class="group">
-                            <form action="/dsave" method="post">
-                                <label for="uni" class="label"><font size="4" color="white">University</font></label>
-                                <input id="uni" type="text" class="input" name="uni">
-                        </div>
-                        <div class="group">
-                            <label for="qual" class="label"><font size="4" color="white">Qualification</font></label>
-                            <input id="qual" type="text" class="input" name="qual">
-                        </div>
-                        <div class="group">
-                            <label for="spl" class="label"><font size="4" color="white">Specialisation</font></label>
-                            <select id="spl" name="spl">
+                        <form action="/dsave" method="post">
+
+                            <div class="group">
+                                <label for="qual" class="label"><font size="4" color="white">Qualification</font></label>
+                                <input id="qual" type="text" class="input" name="qual">
+                            </div>
+                            <div class="group">
+                                <label for="spl" class="label"><font size="4" color="white">Specialisation</font></label>
+                                <select id="spl" name="spl">
 					<option value="General Surgeon">General Surgeon</option>
  					 <option value="Cardiologist">Cardiologist</option>
 					 <option value="Neurologist">Neurologist</option>
 					  <option value="Orthopedic">Orthopedic</option>
 					   <option value="Dermatologist">Dermatologist</option>
 					</select>
-                        </div>
-                        <div class="group">
-                            <label for="gender" class="label"><font size="4"color="white">Gender</font></label>
-                            <input type="radio" name="gender" value="male" checked>
-                            <font size="4" color="red"> Male</font><br>
-                            <input type="radio" name="gender" value="female">
-                            <font size="4" color="red"> Female</font> <br>
-                            <input type="radio" name="gender" value="other">
-                            <font size="4" color="red"> Other</font> <br>
-                        </div>
-                        <div class="group">
-                            <label for="workexp" class="label"><font size="4" color="white">Work Experience</font></label>
-                            <input id="workexp" type="text" class="input" name="we">
-                        </div>
-                        <div class="group">
-                            <label for="wrkspc" class="label"><font size="4" color="white">Current Workspace</font></label>
-                            <input id="wrkspc" type="text" class="input" name="cw">
-                        </div>
-                        <div class="group">
-                            <label for="visithrs" class="label"><font size="4" color="white">Visiting Hours</font></label>
-                            <input id="visithrs" type="time" class="input" name="wh1"></input>TO<input type="time" class="input" name="wh"></input>
-                        </div>
-                        <div class="group">
-                            <label for="certifawrd" class="label"><font size="4" color="white">Certificates/Awards</font></label>
-                            <input id="certifawrd" type="text" class="input" name="ca">
-                        </div>
+                            </div>
+                            <div class="group">
+                                <label for="gender" class="label"><font size="4"color="white">Gender</font></label>
+                                <input type="radio" name="gender" value="male" checked>
+                                <font size="4" color="red"> Male</font><br>
+                                <input type="radio" name="gender" value="female">
+                                <font size="4" color="red"> Female</font> <br>
+                                <input type="radio" name="gender" value="other">
+                                <font size="4" color="red"> Other</font> <br>
+                            </div>
+                            <div class="group">
+                                <label for="wrkspc" class="label"><font size="4" color="white">Current Workspace</font></label>
+                                <input id="wrkspc" type="text" class="input" name="cw">
+                            </div>
 
-                        <div class="group">
-                            <font size="8" color="white"><input type="submit" class="button" value="Done"></font>
-                            </form>
-                        </div>
+                            <div class="group">
+                                <font size="8" color="white"><input type="submit" class="button" value="Done"></font>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- partial -->
 
 </body>
 

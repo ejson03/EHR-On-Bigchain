@@ -52,6 +52,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.engine('.html', require('ejs').renderFile);
 
+
+
 //start of main
 app.get('/', function(req, res) {
     res.render('SampleScroll.html');
@@ -106,7 +108,6 @@ app.post('/dsignup', function(req, res) {
     req.session.pass = req.body.pass;
     req.session.phone = req.body.phone;
 
-    console.log(email);
     const key = bdb.generateKeypair(req.session.email);
     req.session.key = key;
     console.log(req.session.key);
@@ -130,23 +131,16 @@ app.post('/dsignup', function(req, res) {
 app.post('/otp', function(req, res) {
 
     if (req.body.uotp == req.session.otp) {
-        var fn = encrypt(req.session.fname);
-        console.log(fn);
-        var ln = encrypt(req.session.lname);
-        console.log(ln);
-        var email = encrypt(req.session.email);
-        console.log(email);
-        var pass = encrypt(req.session.pass);
-        console.log(pass);
-        var phone = encrypt(req.session.phone);
-        console.log(phone);
-
         if (req.session.dob == null) {
 
             res.render('DoctorDetails.html');
 
         } else {
-            console.log(req.session.dob);
+            var fn = encrypt(req.session.fname);
+            var ln = encrypt(req.session.lname);
+            var email = encrypt(req.session.email);
+            var pass = encrypt(req.session.pass);
+            var phone = encrypt(req.session.phone);
             var dob = encrypt(req.session.dob);
             var gen = encrypt(req.session.gen);
             MongoClient.connect(url, function(err, db) {
@@ -217,7 +211,7 @@ app.post('/dlogin', function(req, res) {
             if (err) throw err;
             console.log(result);
             if (email == result.email && pass == result.password) {
-                res.render('patientaddrec.html');
+                res.render('docaddrec.ejs', { 'email': req.session.email });
                 console.log("hello");
             } else {
                 console.log("not okay");
@@ -228,59 +222,37 @@ app.post('/dlogin', function(req, res) {
 });
 
 app.post('/dsave', function(req, res) {
-    var fn = req.session.fname;
-
-    var uni = req.body.uni;
-    console.log(uni);
     var spl = req.body.spl;
     console.log(spl);
     var wh1 = req.body.wh1;
     console.log(wh1);
-    var wh = req.body.wh;
-    console.log(wh);
-    var we = req.body.we;
-    console.log(we);
     var gen = req.body.gender;
     console.log(gen);
     var cw = req.body.cw;
     console.log(cw);
     var qual = req.body.qual;
     console.log(qual);
-    var ca = req.body.ca;
-    console.log(ca);
 
 
-    var ln = req.session.lname;
-
+    var fn = encrypt(req.session.fname)
+    var ln = encrypt(req.session.lname);
     var email = encrypt(req.session.email);
-
     var pass = encrypt(req.session.pass);
-
     var phone = encrypt(req.session.phone);
-    const keys = new driver.Ed25519Keypair()
-    var epublic = encrypt(keys.publicKey);
-    var eprivate = encrypt(keys.privateKey);
+
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
         var dbo = db.db("project");
-        var myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, cw: cw, gen: gen, uni: uni, spl: spl, qual: qual, ca: ca, pubkey: epublic, privkey: eprivate };
+        var myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, cw: cw, gen: gen, spl: spl, qual: qual };
         dbo.collection("dsignup").insertOne(myobj, function(err, res) {
             if (err) throw err
             console.log("1 document inserted");
-
-            dbo.collection('dsignup').find({}).toArray(function(err, result) {
-                if (err) throw err;
-
-                console.log(result);
-
-                res.render('patientprofile.ejs', { 'docs': result });
-                db.close();
-            });
-        });
+            db.close()
+        })
+        res.render('docaddrec.ejs', { 'email': req.session.email });
 
     });
-
-});
+})
 app.get('/patientdoclist', function(req, res) {
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
@@ -379,9 +351,6 @@ app.post('/submitrec', function(req, res) {
                     console.log('Transaction', retrievedTx.id, 'successfully posted.')
                     res.redirect('/patientmedhistory')
                 })
-                // With the postTransactionCommit if the response is correct, then the transaction
-                // is valid and commited to a block
-                //res.redirect('/patientmedhistory')
 
         });
     });
@@ -445,9 +414,30 @@ app.post('/check', function(req, res) {
     }
 })
 
-// app.get('/docrec', function(rq, res) {
-//     var metadata =
-// })
+app.get('/doclist', async function(req, res) {
+    var metadata = await conn.searchMetadata(encrypt(req.session.email))
+    data = []
+    metadata.forEach(item => {
+        transaction = conn.listTransactions(item.id)
+            .then(transaction => {
+                transaction.forEach(trans => {
+                    asset = conn.searchAssets(trans.asset.id)
+                        .then(ass => {
+                            data.push({ 'email': decrypt(ass.email), 'file': decrypt(ass.file) })
+                        })
+
+                })
+
+            })
+    })
+
+    res.render('doctorasset.ejs', { 'doc': data, 'email': req.session.email });
+
+})
+
+app.get('/docaddrec', function(req, res) {
+    res.render('docaddrec.ejs', { 'email': req.session.email });
+})
 
 //add the router
 app.use('/', router);
