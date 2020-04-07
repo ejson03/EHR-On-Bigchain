@@ -54,7 +54,7 @@
 <div class="w3-top">
     <div class="w3-bar  w3-left-align w3-large" style="color:white;background-color:#1d3247;">
         <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-theme-d2" href="javascript:void(0);" onclick="openNav()"><i class="fa fa-bars"></i></a>
-        <a href="/docaddrec" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i class="fa fa-home w3-margin-right"></i></a>
+        <a href="/docdetails" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i class="fa fa-home w3-margin-right"></i></a>
 
 
         <a href="http://localhost:3000/" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white" title="Dashboard" text-align="left">Dashboard</a>
@@ -75,9 +75,8 @@
         <p class="w3-text-grey"> </p>
     </div>
     <div class="w3-bar-block">
-        <a href="/docaddrec" onclick="w3_close()" class="w3-bar-item w3-button w3-padding w3-text-white"><i class="fa fa-pencil fa-fw w3-margin-right"></i>ADD MEDICAL RECORDS</a>
-        <a href="/doclist" onclick="w3_close()" class="w3-bar-item w3-button w3-padding  w3-text-white"><i class="fa fa-user fa-fw w3-margin-right"></i>PATIENT MEDICAL RECORDS</a>
-
+        <a href="/docdetails" onclick="w3_close()" class="w3-bar-item w3-button w3-padding  w3-text-white"><i class="fa fa-user fa-fw w3-margin-right"></i>DETAILS</a>
+        <a href="/doclist" onclick="w3_close()" class="w3-bar-item w3-button w3-padding w3-text-white"><i class="fa fa-pencil fa-fw w3-margin-right"></i>ADD MEDICAL RECORDS</a>
         <div class="p-t-15">
             <form method="post" action="/logout">
                 <button class="btn btn--radius-2 btn--blue" type="submit" style="background:#e50505;margin-left:60px;">LOG-OUT</button>

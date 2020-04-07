@@ -20,12 +20,13 @@ const {
     generateOTP,
     showAccess,
     showRevoke,
-    createAsset
+    createAsset,
+    getSingleDoctor,
+    insertDetails,
+    getMultipleDoctors,
+    getPatient,
+    getDoctorFiles
 } = require("./utils/stuff.js")
-
-// mongo connection
-let MongoClient = require('mongodb').MongoClient;
-let url = "mongodb://192.168.33.160:27017/";
 
 // ipfs connection
 const ipfsAPI = require('ipfs-api');
@@ -62,20 +63,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.engine('.html', require('ejs').renderFile);
 
-
-
 //start of main
 app.get('/', function(req, res) {
     res.render('SampleScroll.html');
 });
 //end of main
 
-//doctor start
-app.get('/doctor', function(req, res) {
-    res.render('docsignfinal.html');
-});
-// doc end
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 //patient start
 app.get('/paitent', function(req, res) {
     res.render('patientsignfinal.html');
@@ -110,70 +104,6 @@ app.post('/psignup', function(req, res) {
 });
 //psignup end
 
-//signup for doctor save the data into session
-app.post('/dsignup', function(req, res) {
-    req.session.fname = req.body.fname;
-    req.session.lname = req.body.lname;
-    req.session.email = req.body.email;
-    req.session.pass = req.body.pass;
-    req.session.phone = req.body.phone;
-
-    const key = bdb.generateKeypair(req.session.email);
-    req.session.key = key;
-    console.log(req.session.key);
-    generateKeys(encrypt(req.session.email))
-
-    let otp = generateOTP();
-    console.log(otp);
-    req.session.otp = otp;
-    let email = req.body.email;
-
-    console.log(email);
-    generateEmail(email, otp)
-    res.render('otp.html');
-    // send user to the otp page
-
-});
-//end of /dsignup
-
-
-//when clciked submit in otp page
-app.post('/otp', function(req, res) {
-
-    if (req.body.uotp == req.session.otp) {
-        if (req.session.dob == null) {
-
-            res.render('DoctorDetails.html');
-
-        } else {
-            let fn = encrypt(req.session.fname);
-            let ln = encrypt(req.session.lname);
-            let email = encrypt(req.session.email);
-            let pass = encrypt(req.session.pass);
-            let phone = encrypt(req.session.phone);
-            let dob = encrypt(req.session.dob);
-            let gen = encrypt(req.session.gen);
-            MongoClient.connect(url, function(err, db) {
-                if (err) throw err;
-                let dbo = db.db("project");
-                let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, dob: dob, gen: gen };
-                dbo.collection("psignup").insertOne(myobj, function(err, res) {
-                    if (err) throw err
-                    console.log("1 document inserted");
-                    db.close();
-                });
-            });
-            console.log("suceesful signup...redirected shortly...");
-            res.render('patientaddrec.ejs', { 'email': req.session.email });
-        }
-    } else {
-        console.log(req.body.uotp);
-        console.log(req.session.otp);
-    }
-
-});
-
-
 app.post('/plogin', function(req, res) {
 
     let email = encrypt(req.body.email)
@@ -182,109 +112,19 @@ app.post('/plogin', function(req, res) {
     const key = bdb.generateKeypair(req.session.email);
     req.session.key = key;
     console.log(req.session.key);
-
-    MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        let dbo = db.db("project");
-
-        //Find the first document in the customers collection:
-        dbo.collection("psignup").findOne({ email: email }, function(err, resu) {
-            if (err) throw err;
-            if (email == resu.email && pass == resu.password) {
-                console.log("suceesful login...redirected shortly...");
-                res.render('patientaddrec.ejs', { 'email': req.session.email });
-
-            } else {
-                console.log("not okay");
-            }
-
-            db.close();
-
-        });
-    });
-
+    (async() => {
+        let data = await getPatient(email, pass)
+        console.log(data)
+        res.redirect('/patientaddrec')
+    })();
 });
 
-app.post('/dlogin', function(req, res) {
-    let email = encrypt(req.body.email);
-    let pass = encrypt(req.body.pass);
-    console.log(email);
-    req.session.email = req.body.email;
-    const key = bdb.generateKeypair(req.session.email);
-    req.session.key = key;
-    console.log(req.session.key);
-    MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        let dbo = db.db("project");
-        //Find the first document in the customers collection:
-        dbo.collection("dsignup").findOne({ email: email }, function(err, result) {
-            if (err) throw err;
-            console.log(result);
-            if (email == result.email && pass == result.password) {
-                res.render('docaddrec.ejs', { 'email': req.session.email });
-                console.log("hello");
-            } else {
-                console.log("not okay");
-            }
-        });
-        db.close();
-    });
-});
-
-app.post('/dsave', function(req, res) {
-    let spl = req.body.spl;
-    console.log(spl);
-    let wh1 = req.body.wh1;
-    console.log(wh1);
-    let gen = req.body.gender;
-    console.log(gen);
-    let cw = req.body.cw;
-    console.log(cw);
-    let qual = req.body.qual;
-    console.log(qual);
-
-
-    let fn = req.session.fname
-    let ln = req.session.lname;
-    let email = encrypt(req.session.email);
-    let pass = encrypt(req.session.pass);
-    let phone = encrypt(req.session.phone);
-
-    MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        let dbo = db.db("project");
-        let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, cw: cw, gen: gen, spl: spl, qual: qual };
-        dbo.collection("dsignup").insertOne(myobj, function(err, res) {
-            if (err) throw err
-            console.log("1 document inserted");
-            db.close()
-        })
-        res.render('docaddrec.ejs', { 'email': req.session.email });
-
-    });
-})
 app.get('/patientaccdoclist', function(req, res) {
-    MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        let db1 = db.db("project");
-        db1.collection('dsignup').find({}).toArray(function(err, result) {
-            if (err) throw err;
-            console.log(result)
-            res.render('patientaccdoclist.ejs', { 'docs': result, 'email': req.session.email });
-        })
-    });
-})
-
-app.get('/patientrevdoclist', function(req, res) {
-    MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        let db1 = db.db("project");
-        db1.collection('dsignup').find({}).toArray(function(err, result) {
-            if (err) throw err;
-            console.log(result)
-            res.render('patientrevdoclist.ejs', { 'docs': result, 'email': req.session.email });
-        })
-    });
+    (async() => {
+        let result = await getMultipleDoctors();
+        console.log(result)
+        res.render('patientaccdoclist.ejs', { 'docs': result, 'email': req.session.email });
+    })();
 })
 
 app.get('/patientmedhistory', function(req, res) {
@@ -415,29 +255,127 @@ app.post('/uncheck', function(req, res) {
     }
 })
 
-app.get('/doclist', async function(req, res) {
-    let metadata = await conn.searchMetadata(encrypt(req.session.email))
-    data = []
-    metadata.forEach(item => {
-        transaction = conn.listTransactions(item.id)
-            .then(transaction => {
-                transaction.forEach(trans => {
-                    asset = conn.searchAssets(trans.asset.id)
-                        .then(ass => {
-                            data.push({ 'email': decrypt(ass.email), 'file': decrypt(ass.file) })
-                        })
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//when clciked submit in otp page
+app.post('/otp', function(req, res) {
 
-                })
+    if (req.body.uotp == req.session.otp) {
+        if (req.session.dob == null) {
+            res.render('DoctorDetails.html');
+        } else {
+            let fn = encrypt(req.session.fname);
+            let ln = encrypt(req.session.lname);
+            let email = encrypt(req.session.email);
+            let pass = encrypt(req.session.pass);
+            let phone = encrypt(req.session.phone);
+            let dob = encrypt(req.session.dob);
+            let gen = encrypt(req.session.gen);
+            let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, dob: dob, gen: gen };
+            (async() => {
+                let data = await insertDetails("psignup", myobj)
+                res.render('patientaddrec.ejs', { 'email': req.session.email });
+            })();
 
-            })
-    })
+        }
+    } else {
+        console.log(req.body.uotp);
+        console.log(req.session.otp);
+    }
 
-    res.render('doctorasset.ejs', { 'doc': data, 'email': req.session.email });
+});
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//doctor start
+app.get('/doctor', function(req, res) {
+    res.render('docsignfinal.html');
+});
+// doc end
+
+//signup for doctor save the data into session
+app.post('/dsignup', function(req, res) {
+    req.session.fname = req.body.fname;
+    req.session.lname = req.body.lname;
+    req.session.email = req.body.email;
+    req.session.pass = req.body.pass;
+    req.session.phone = req.body.phone;
+
+    const key = bdb.generateKeypair(req.session.email);
+    req.session.key = key;
+    console.log(req.session.key);
+    generateKeys(encrypt(req.session.email))
+
+    let otp = generateOTP();
+    console.log(otp);
+    req.session.otp = otp;
+    let email = req.body.email;
+
+    console.log(email);
+    generateEmail(email, otp)
+    res.render('otp.html');
+    // send user to the otp page
+
+});
+//end of /dsignup
+
+app.post('/dlogin', function(req, res) {
+    let email = encrypt(req.body.email);
+    let pass = encrypt(req.body.pass);
+    req.session.email = req.body.email;
+    req.session.pass = pass
+    const key = bdb.generateKeypair(req.session.email);
+    req.session.key = key;
+    console.log(req.session.key);
+    (async() => {
+        let data = await getSingleDoctor(email, pass)
+        console.log(data)
+        res.render('docprofile.ejs', { 'data': data, 'email': req.session.email });
+    })();
+});
+
+app.post('/dsave', function(req, res) {
+    let spl = req.body.spl;
+    console.log(spl);
+    let gen = req.body.gender;
+    console.log(gen);
+    let cw = req.body.cw;
+    console.log(cw);
+    let qual = req.body.qual;
+    console.log(qual);
+    let fn = req.session.fname
+    let ln = req.session.lname;
+    let email = encrypt(req.session.email);
+    let pass = encrypt(req.session.pass);
+    let phone = encrypt(req.session.phone);
+
+    let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, cw: cw, gen: gen, spl: spl, qual: qual };
+    (async() => {
+        let data = await insertDetails("dsignup", myobj)
+        res.redirect('/docdetails')
+    })();
+
+})
+
+app.get('/doclist', function(req, res) {
+    (async() => {
+        let data = await getDoctorFiles(req.session.email)
+        console.log(data)
+        res.render('doctorasset.ejs', { 'doc': data, 'email': req.session.email });
+    })();
 })
 
 app.get('/docaddrec', function(req, res) {
     res.render('docaddrec.ejs', { 'email': req.session.email });
+})
+
+app.get('/docdetails', function(req, res) {
+    let email = encrypt(req.session.email);
+    let pass = encrypt(req.session.pass);
+    (async() => {
+        let data = await getSingleDoctor(email, pass)
+        console.log(data)
+        res.render('docprofile.ejs', { 'data': data, 'email': req.session.email });
+    })();
 })
 
 //add the router

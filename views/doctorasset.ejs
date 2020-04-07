@@ -13,23 +13,29 @@
                             <div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative;"><br>
                                 <h4 style="font-size:30px;font-weight: bold; color:#000000;">Patient Email:</h4>
                                 <b style="font-size: 18px;"> <%= doc[d].data.email %></b>
-                                <form method="post" action="view">
-                                    <button class="btn btn--radius-2 btn--blue" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].data.file %>" name="b">view</button>
+                                <form method="post" action="/view" class="viewForm">
+                                    <button class="btn btn--radius-2 btn--blue viewButton" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].data.file %>" name="b">view</button>
+                                </form>
+                                <form method="post" action="/prescribe" class="prescribeForm">
+                                    <button class="btn btn--radius-2 btn--blue prescribeButton" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].data.file %>" name="b">view</button>
                                 </form>
                             </div>
                             <% } %>
                                 <div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative;font-size: 18px;"><br>
                                     <b> Description of Uploaded Docs</b>
-
-
                                 </div>
-
-
-
                     </div>
                 </div>
             </div>
         </div>
+        <script>
+            $('button.viewButton').click(function() {
+                $('form.viewForm').submit();
+            });
+            $('button.prescribeButton').click(function() {
+                $('form.prescribeForm').submit();
+            });
+        </script>
 
     </body>
 

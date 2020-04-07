@@ -32,15 +32,21 @@
                                     <%= docs[d].fname %> &nbsp
                                         <%= docs[d].lname %>
                                 </center>
+
+                                <h4 style="font-size:20px;font-weight: bold; color:#000000;">SPECIALIZATION:
+                                    <%=docs[d].spl %>
+                                </h4>
+                                <h4 style="font-size:20px;font-weight: bold; color:#000000;"> QUALIFICATION:
+                                    <%= docs[d].qual %>
+                                </h4>
                                 <form action="/access" method="post">
-                                    <h4 style="font-size:20px;font-weight: bold; color:#000000;">SPECIALIZATION:
-                                        <%=docs[d].spl %>
-                                    </h4>
-                                    <h4 style="font-size:20px;font-weight: bold; color:#000000;"> QUALIFICATION:
-                                        <%= docs[d].qual %>
-                                    </h4>
                                     <div class="p-t-15">
-                                        <button class="btn btn--radius-2 btn--blue" type="submit" style="float:right; " value="<%= docs[d].email%>" name="value">Give Access</button>
+                                        <button class="btn btn--radius-2 btn--blue" type="submit" style="float:initial;margin-left: 575px;padding-right: 75px; " value="<%= docs[d].email%>" name="value">Give Access</button>
+                                    </div>
+                                </form>
+                                <form action="/revoke" method="post">
+                                    <div class="p-t-15">
+                                        <button class="btn btn--radius-2 btn--blue" type="submit" style="float:initial;margin-left: 575px; " value="<%= docs[d].email%>" name="value"> Revoke Access</button>
                                     </div>
                                 </form>
                             </div>
@@ -50,8 +56,12 @@
                                     <center style="font-size:30px;font-weight: bold; color:#000000;text-transform:uppercase;">DOCTORS NAME</center>
                                     <h4 style="font-size:20px;font-weight: bold; color:#000000;">SPECIALIZATION:.....</h4>
                                     <h4 style="font-size:20px;font-weight: bold; color:#000000;"> QUALIFICATION:....</h4>
+
                                     <div class="p-t-15">
-                                        <button class="btn btn--radius-2 btn--blue" type="submit" style="float:right; ">Give Access</button>
+                                        <button class="btn btn--radius-2 btn--blue" style="float:initial;margin-left: 575px;padding-right: 75px; ">Give Access</button>
+                                    </div>
+                                    <div class="p-t-15">
+                                        <button class="btn btn--radius-2 btn--blue" style="float:initial;margin-left: 575px; "> Revoke Access</button>
                                     </div>
                                 </div>
 
