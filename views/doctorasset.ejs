@@ -12,12 +12,17 @@
                         <% for (var d=0; d<doc.length; d++){ %>
                             <div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative;"><br>
                                 <h4 style="font-size:30px;font-weight: bold; color:#000000;">Patient Email:</h4>
-                                <b style="font-size: 18px;"> <%= doc[d].data.email %></b>
+                                <b style="font-size: 18px;"> <%= doc[d].email %></b>
+                                <h4 style="font-size:30px;font-weight: bold; color:#000000;">Description</h4>
+                                <b style="font-size: 18px;"> <%= doc[d].description %></b>
                                 <form method="post" action="/view" class="viewForm">
-                                    <button class="btn btn--radius-2 btn--blue viewButton" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].data.file %>" name="b">view</button>
+                                    <button class="btn btn--radius-2 btn--blue viewButton" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].file %>" name="b">view</button>
                                 </form>
                                 <form method="post" action="/prescribe" class="prescribeForm">
-                                    <button class="btn btn--radius-2 btn--blue prescribeButton" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].data.file %>" name="b">view</button>
+                                    <input type="hidden" name="id" value="<%= doc[d].id %>">
+                                    <input type="hidden" name="description" value="<%= doc[d].description %>">
+                                    <input type="hidden" name="pkey" value="<%= doc[d].pkey %>">
+                                    <button class="btn btn--radius-2 btn--blue prescribeButton" type="submit" style=" float:right;margin-bottom: 10px;" name="c">Prescribe</button>
                                 </form>
                             </div>
                             <% } %>

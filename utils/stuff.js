@@ -182,14 +182,26 @@ const createAsset = async(data, email, fpath, publicKey, privateKey) => {
     return tx
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-const getSingleDoctor = async(email, pass) => {
+const getSingleDoctor = async(email, pass, action) => {
     let data = {}
     let db = await MongoClient.connect(url);
     let dbo = db.db("project");
     let result = await dbo.collection("dsignup").findOne({ email: email });
-
     console.log(result);
-    if (email == result.email && pass == result.password) {
+    if (action == "login") {
+        if (email == result.email && pass == result.password) {
+            data = {
+                'email': decrypt(result.email),
+                'name': `${result.fname} ${result.lname}`,
+                'qualification': result.qual,
+                'specialty': result.spl,
+                'current': result.cw
+            }
+            console.log("login succesful.........");
+        } else {
+            console.log("not okay");
+        }
+    } else {
         data = {
             'email': decrypt(result.email),
             'name': `${result.fname} ${result.lname}`,
@@ -197,9 +209,7 @@ const getSingleDoctor = async(email, pass) => {
             'specialty': result.spl,
             'current': result.cw
         }
-        console.log("hello");
-    } else {
-        console.log("not okay");
+        console.log("Retrieved dctor deatilas successfully.....");
     }
     db.close();
     return data;
@@ -240,18 +250,54 @@ const getPatient = async(email, pass) => {
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const getDoctorFiles = async(email) => {
-    let metadata = await conn.searchMetadata(encrypt(email));
-    data = [];
+    let metadata = await conn.searchMetadata(email);
+    let data = [];
+    let assetlist = new Set();
+
     for (const meta of metadata) {
-        let transactions = await conn.listTransactions(meta.id);
-        let transaction = transactions[transactions.length - 1];
-        let asset = await conn.searchAssets(transaction.asset.id);
-        console.log(asset);
-        data.push({ 'email': decrypt(asset[0].data.email), 'file': decrypt(asset[0].data.file) });
+        tx = await conn.listTransactions(meta.id)
+        assetlist.add(tx[tx.length - 1].asset.id)
     }
+    assetlist = [...assetlist]
+    assetlist = assetlist.filter(function(element) {
+        return element !== undefined;
+    });
+    for (const asset of assetlist) {
+        tx = await conn.listTransactions(asset)
+        docs = tx[tx.length - 1].metadata.doclist
+        let result = docs.filter(st => st.email.includes(email))
+        if (result.length != 0) {
+            let ass = await conn.searchAssets(asset)
+
+            data.push({
+                'email': decrypt(ass[0].data.email),
+                'file': decrypt(ass[0].data.file),
+                'description': ass[0].data.description,
+                'id': asset,
+                'pkey': tx[tx.length - 1].outputs[0].public_keys[0]
+            })
+        }
+    }
+    console.log(data)
     return data;
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////
+
+const createPrescription = async(data, metadata, patientPublicKey, privateKey) => {
+    console.log(privateKey)
+    const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
+        data,
+        metadata, [driver.Transaction.makeOutput(
+            driver.Transaction.makeEd25519Condition(patientPublicKey))],
+        patientPublicKey
+    )
+    const txCreateAliceSimpleSigned = driver.Transaction.signTransaction(txCreateAliceSimple, privateKey)
+    tx = await conn.postTransactionCommit(txCreateAliceSimpleSigned)
+    return tx
+};
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 module.exports = {
     createAccess,
     revokeAccess,
@@ -264,6 +310,7 @@ module.exports = {
     insertDetails,
     getMultipleDoctors,
     getPatient,
-    getDoctorFiles
+    getDoctorFiles,
+    createPrescription
 
 }

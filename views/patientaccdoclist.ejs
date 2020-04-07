@@ -49,6 +49,11 @@
                                         <button class="btn btn--radius-2 btn--blue" type="submit" style="float:initial;margin-left: 575px; " value="<%= docs[d].email%>" name="value"> Revoke Access</button>
                                     </div>
                                 </form>
+                                <form action="/viewpres" method="post">
+                                    <div class="p-t-15">
+                                        <button class="btn btn--radius-2 btn--blue" type="submit" style="float:initial;margin-left: 575px; " value="<%= docs[d].email%>" name="demail">View Prescription</button>
+                                    </div>
+                                </form>
                             </div>
                             <% } %>
 
@@ -62,6 +67,9 @@
                                     </div>
                                     <div class="p-t-15">
                                         <button class="btn btn--radius-2 btn--blue" style="float:initial;margin-left: 575px; "> Revoke Access</button>
+                                    </div>
+                                    <div class="p-t-15">
+                                        <button class="btn btn--radius-2 btn--blue" style="float:initial;margin-left: 575px; ">View Prescription</button>
                                     </div>
                                 </div>
 

@@ -9,16 +9,21 @@
                 <div class="card card-4">
                     <div class="card-body">
                         <h2 class="title" id="addreco" style="font-size:40px;font-weight: bold; color:#000000;">My Medical Records</h2>
-                        <form method="POST">
-
+                        <form method="POST" action="/addprescription">
                             <div class="row row-space">
+                                <div class="col-2">
 
+                                    <div class="input-group">
+                                        <input type="hidden" name="id" value="<%= id %>">
+                                        <input type="hidden" name="description" value="<%= description %>">
+                                        <input type="hidden" name="pkey" value="<%= pkey %>">
+                                        <label class="label">Prescription </label>
 
+                                        <input type="text" name="prescription" class="input--style-4" style="border: solid; font-size: 20px;color: #31313;">
+
+                                    </div>
+                                </div>
                             </div>
-
-
-
-
                             <div class="p-t-15">
                                 <button class="btn btn--radius-2 btn--blue" type="submit">Submit</button>
                             </div>
