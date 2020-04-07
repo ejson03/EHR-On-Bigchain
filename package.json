@@ -28,6 +28,7 @@
     "formidable": "^1.2.2",
     "ipfs-api": "^26.1.2",
     "mongodb": "^3.5.5",
+    "node-fetch": "^2.6.0",
     "node-rsa": "^1.0.8",
     "nodemailer": "^6.4.6",
     "open": "^7.0.3"
