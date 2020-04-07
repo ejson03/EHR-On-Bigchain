@@ -4,11 +4,11 @@
 
     <body class="w3-light-grey w3-content" style="background-color: #8c5fe0; ">
         <!--Add Medical Records-->
-        <div class="transbox" style="opacity: 0.6;filter: alpha(opacity=60);position:absolute; left:500px;top:55px; height:1000px; width:1000px  " id="dashb">
+        <div class="transbox" style="opacity: 1;filter: alpha(opacity=60);position:absolute; left:500px;top:55px; height:1000px; width:1000px  " id="dashb">
             <div class="wrapper wrapper--w680">
                 <div class="card card-4">
                     <div class="card-body">
-                        <h2 class="title" id="addreco" style="font-size:40px;font-weight: bold; color:#000000;">My Medical Records</h2>
+                        <h2 class="title" id="addreco" style="font-size:40px;font-weight: bold; color:#000000;">My Prescription</h2>
                         <form method="POST" action="/addprescription">
                             <div class="row row-space">
                                 <div class="col-2">
@@ -17,9 +17,9 @@
                                         <input type="hidden" name="id" value="<%= id %>">
                                         <input type="hidden" name="description" value="<%= description %>">
                                         <input type="hidden" name="pkey" value="<%= pkey %>">
-                                        <label class="label">Prescription </label>
+                                        <label class="label" style="font-size: 25px;color: black;margin-bottom: 20px;">Prescription </label>
 
-                                        <input type="text" name="prescription" class="input--style-4" style="border: solid; font-size: 20px;color: #31313;">
+                                        <textarea type="text" name="prescription" class="input--style-4" style="padding-bottom: 50%; font-size: 20px;color: black;width: 100%;width: 212%"></textarea>
 
                                     </div>
                                 </div>
@@ -33,42 +33,16 @@
             </div>
         </div>
 
-        <!--Upload Medical Records-->
-        <div class="transbox" style="opacity: 0.6;filter: alpha(opacity=60);position:absolute; left:500px; top:1000px;height:1000px; width:1000px  ">
-            <div class="wrapper wrapper--w680">
-                <div class="card card-4">
-                    <div class="card-body">
-                        <h2 class="title" id="addreco" style="font-size:40px;font-weight: bold; color:#000000;">Upload Medical Reports</h2>
-                        <form method="post" action="/submitrec" enctype="multipart/form-data">
-                            <div class="row row-space">
-                                <div class="col-2">
 
-                                    <div class="input-group">
+        <!-- Jquery JS-->
+        <script src="/vendor/jquery/jquery.min.js"></script>
+        <!-- Vendor JS-->
+        <script src="/vendor/select2/select2.min.js"></script>
+        <script src="/vendor/datepicker/moment.min.js"></script>
+        <script src="/vendor/datepicker/daterangepicker.js"></script>
 
-
-                                        <input type="text" name="d" class="input--style-4" style="border: solid; font-size: 20px;color: #31313;">
-
-                                        <input type="file" name="fileupload"><br><br>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-t-15">
-                                <button class="btn btn--radius-2 btn--blue" type="submit">Submit</button>
-                        </form>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            <!-- Jquery JS-->
-            <script src="/vendor/jquery/jquery.min.js"></script>
-            <!-- Vendor JS-->
-            <script src="/vendor/select2/select2.min.js"></script>
-            <script src="/vendor/datepicker/moment.min.js"></script>
-            <script src="/vendor/datepicker/daterangepicker.js"></script>
-
-            <!-- Main JS-->
-            <script src="/js/global.js"></script>
+        <!-- Main JS-->
+        <script src="/js/global.js"></script>
     </body>
 
 </html>

@@ -29,6 +29,7 @@ const {
     createPrescription
 } = require("./utils/stuff.js")
 
+
 const RASAUtils = require("./utils/RASA");
 const RASA_URI = "http://07e546b5.ngrok.io/";
 
@@ -125,18 +126,6 @@ app.get('/patientaccdoclist', function(req, res) {
         console.log(result)
         res.render('patientaccdoclist.ejs', { 'docs': result, 'email': req.session.email });
     })();
-})
-
-app.post("/rasa/", async (req, res)=>{
-    try{
-    const message = req.body.message;
-    const sender = req.session.email;
-    const rasa = await RASAUtils.default(RASA_URI, message, sender);
-    return res.json(rasa);
-    }catch(err){
-        console.error(err);
-        return res.json([]);
-    }
 })
 
 app.get('/patientmedhistory', function(req, res) {
@@ -311,8 +300,18 @@ app.post('/view', async function(req, res) {
         console.error(err);
         return res.sendStatus(404);
     }
+})
 
-
+app.post("/rasa/", async(req, res) => {
+    try {
+        const message = req.body.message;
+        const sender = req.session.email;
+        const rasa = await RASAUtils.default(RASA_URI, message, sender);
+        return res.json(rasa);
+    } catch (err) {
+        console.error(err);
+        return res.json([]);
+    }
 })
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

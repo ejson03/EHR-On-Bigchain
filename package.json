@@ -1,39 +1,39 @@
 {
-  "name": "ehr",
-  "version": "1.0.0",
-  "description": "ehr using hyperledger fabric",
-  "main": "open.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/04rahul/EHR.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/04rahul/EHR/issues"
-  },
-  "homepage": "https://github.com/04rahul/EHR#readme",
-  "dependencies": {
-    "bigchaindb-driver": "^4.1.2",
-    "cookie-session": "^1.4.0",
-    "crypto": "^1.0.1",
-    "easy-bigchain": "^1.0.1",
-    "ejs": "^3.0.2",
-    "ejs-lint": "^1.0.1",
-    "express": "^4.17.1",
-    "express-session": "^1.17.0",
-    "formidable": "^1.2.2",
-    "ipfs-api": "^26.1.2",
-    "mongodb": "^3.5.5",
-    "node-fetch": "^2.6.0",
-    "node-rsa": "^1.0.8",
-    "nodemailer": "^6.4.6",
-    "open": "^7.0.3"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.2"
-  }
+    "name": "ehr",
+    "version": "1.0.0",
+    "description": "ehr using bigchaindb",
+    "main": "open.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ejson03/EHR.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/ejson03/EHR/issues"
+    },
+    "homepage": "https://github.com/ejson03/EHR#readme",
+    "dependencies": {
+        "bigchaindb-driver": "^4.1.2",
+        "cookie-session": "^1.4.0",
+        "crypto": "^1.0.1",
+        "easy-bigchain": "^1.0.1",
+        "ejs": "^3.0.2",
+        "ejs-lint": "^1.0.1",
+        "express": "^4.17.1",
+        "express-session": "^1.17.0",
+        "formidable": "^1.2.2",
+        "ipfs-api": "^26.1.2",
+        "mongodb": "^3.5.5",
+        "node-fetch": "^2.6.0",
+        "node-rsa": "^1.0.8",
+        "nodemailer": "^6.4.6",
+        "open": "^7.0.3"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.2"
+    }
 }

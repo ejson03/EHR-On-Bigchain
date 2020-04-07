@@ -4,7 +4,7 @@
 
     <body class="w3-light-grey w3-content" style=" ">
         <!--MyMedicalHistory-->
-        <div class="transbox" style="opacity: 0.6;filter: alpha(opacity=60);position:absolute; left:500px;top:55px; height:1000px; width:1100px " id="dashb">
+        <div class="transbox" style="opacity: 1;filter: alpha(opacity=60);position:absolute; left:500px;top:55px; width:1100px " id="dashb">
             <div class="wrapper wrapper--w680" style="max-width: 950px;">
                 <div class="card card-4">
                     <div class="card-body">
@@ -16,13 +16,13 @@
                                 <h4 style="font-size:30px;font-weight: bold; color:#000000;">Description</h4>
                                 <b style="font-size: 18px;"> <%= doc[d].description %></b>
                                 <form method="post" action="/view" class="viewForm">
-                                    <button class="btn btn--radius-2 btn--blue viewButton" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].file %>" name="b">view</button>
+                                    <button class="btn btn--radius-2 btn--blue viewButton" type="submit" style=" float:right;margin-top: 20px;margin-bottom: 20px;" value="<%= doc[d].file %>" name="b">View</button>
                                 </form>
                                 <form method="post" action="/prescribe" class="prescribeForm">
                                     <input type="hidden" name="id" value="<%= doc[d].id %>">
                                     <input type="hidden" name="description" value="<%= doc[d].description %>">
                                     <input type="hidden" name="pkey" value="<%= doc[d].pkey %>">
-                                    <button class="btn btn--radius-2 btn--blue prescribeButton" type="submit" style=" float:right;margin-bottom: 10px;" name="c">Prescribe</button>
+                                    <button class="btn btn--radius-2 btn--blue prescribeButton" type="submit" style=" float:right;margin-right: 15px;margin-top: 20px;margin-bottom: 20px;" name="c">Prescribe</button>
                                 </form>
                             </div>
                             <% } %>
