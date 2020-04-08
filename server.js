@@ -318,8 +318,13 @@ app.post('/otp', function(req, res) {
 
 app.post('/view', async function(req, res) {
     console.log(req.body);
-    let url1 = req.body.b;
-
+    let url1 = "";
+    let status = req.body.url;
+    if (status == "encrypted") {
+        url1 = decrypt(req.body.b);
+    } else {
+        url1 = req.body.b;
+    }
     try {
         let buffer = await GetFile(url1);
         console.log("got file....now decrypting...")

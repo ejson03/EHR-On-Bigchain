@@ -14,6 +14,8 @@
                                 <h4 style="font-size:30px;font-weight: bold; color:#000000;">DESCRIPTION:</h4>
                                 <b style="font-size: 18px;"> <%= doc[d].data.description %></b>
                                 <form method="post" action="/view">
+                                    <input type="hidden" name="url" value="encrypted">
+
                                     <button class="btn btn--radius-2 btn--blue" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].data.file %>" name="b">view</button>
                                 </form>
                                 <form method="post" action="/history">

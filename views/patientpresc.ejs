@@ -13,7 +13,8 @@
                             <div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative;"><br>
                                 <h4 style="font-size:30px;font-weight: bold; color:#000000;">Prescription:</h4>
                                 <b style="font-size: 18px;"> <%= doc[d].prescription %></b>
-                                <form method="post" action="view">
+                                <form method="post" action="/view">
+                                    <input type="hidden" name="url" value="decrypted">
                                     <button class="btn btn--radius-2 btn--blue" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].file %>" name="b">view</button>
                                 </form>
                             </div>
