@@ -11,18 +11,21 @@
                         <h2 class="title" id="myhistory" style="font-size:40px;font-weight: bold; color:#000000;">My Medical History</h2>
                         <% for (var d=0; d<doc.length; d++){ %>
                             <div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative;"><br>
-                                <h4 style="font-size:30px;font-weight: bold; color:#000000;">DESCRIPTION:</h4>
-                                <b style="font-size: 18px;"> <%= doc[d].data.description %></b>
-                                <form method="post" action="/view">
-                                    <button class="btn btn--radius-2 btn--blue" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].data.file %>" name="b">view</button>
-                                </form>
-                                <form method="post" action="/history">
-                                    <button class="btn btn--radius-2 btn--blue" type="submit" style=" float:right;margin-bottom: 10px;" value="<%= doc[d].id %>" name="history">history</button>
-                                </form>
+                                <h4 style="font-size:30px;font-weight: bold; color:#000000;">OPERATION:</h4>
+                                <b style="font-size: 18px;"> <%= doc[d].operation %></b>
+                                <h4 style="font-size:30px;font-weight: bold; color:#000000;">DATE:</h4>
+                                <b style="font-size: 18px;"> <%= doc[d].date %></b>
+                                <% if (doc[d].operation == "TRANSFER") { %>
+                                    <h4 style="font-size:30px;font-weight: bold; color:#000000;">DOCTORS:</h4>
+                                    <% for (var i=0; i<doc[d].doctor.length; i++){ %>
+                                        <b style="font-size: 18px;"> <%= doc[d].doctor[i] %></b>
+                                        <% } %>
+                                            <% } %>
+
                             </div>
                             <% } %>
                                 <div class="w3-container w3-card w3-white w3-round w3-margin" style="position:relative;font-size: 18px;"><br>
-                                    <b> Description of Uploaded Docs</b>
+                                    <b>ASSET HISTORY</b>
 
 
                                 </div>

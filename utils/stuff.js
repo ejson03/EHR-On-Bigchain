@@ -52,61 +52,65 @@ const generateEmail = (email, otp) => {
     });
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const createAccess = async(data, publicKey, privateKey, meta, kpath) => {
-    let asset = await conn.searchAssets(data)
-    asset.forEach(item => console.log(item.id))
-    let transaction = await conn.listTransactions(asset[0].id)
-    console.log(transaction.length)
-    data = {
-        'email': meta,
-        'key': encryptRSA('d6F3Efeq', path.join(`keys/${kpath}`, 'public.pem'))
+const createAccess = async(dlist, publicKey, privateKey, meta, kpath) => {
+    for (index in dlist) {
+        let asset = await conn.searchAssets(dlist[index])
+        let transaction = await conn.listTransactions(asset[0].id)
+        console.log(transaction.length)
+        data = {
+            'email': meta,
+            'key': encryptRSA('d6F3Efeq', path.join(`keys/${kpath}`, 'public.pem'))
+        }
+        console.log(transaction[transaction.length - 1].metadata)
+        metadata = transaction[transaction.length - 1].metadata
+        metadata['doclist'].push(data)
+        metdata = JSON.stringify(metadata)
+        console.log("metadata is ", metadata)
+
+        const txTransferBob = driver.Transaction.makeTransferTransaction(
+
+                [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
+                metadata
+            )
+            // Sign with alice's private key
+        let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
+
+        // Post with commit so transaction is validated and included in a block
+        transfer = await conn.postTransactionCommit(txTransferBobSigned)
+        console.log(transfer.id)
     }
-    console.log(transaction[transaction.length - 1].metadata)
-    metadata = transaction[transaction.length - 1].metadata
-    metadata['doclist'].push(data)
-    metdata = JSON.stringify(metadata)
-    console.log("metadata is ", metadata)
 
-    const txTransferBob = driver.Transaction.makeTransferTransaction(
 
-            [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
-            metadata
-        )
-        // Sign with alice's private key
-    let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
-
-    // Post with commit so transaction is validated and included in a block
-    transfer = await conn.postTransactionCommit(txTransferBobSigned)
-    console.log(transfer.id)
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const revokeAccess = async(data, publicKey, privateKey, meta) => {
-    let asset = await conn.searchAssets(data)
-    asset.forEach(item => console.log(item.id))
-    let transaction = await conn.listTransactions(asset[0].id)
-    console.log(transaction[transaction.length - 1].metadata)
-    let metadata = transaction[transaction.length - 1].metadata
-    let doclist = metadata.doclist
-    console.log("Before", doclist.length)
-    doclist = doclist.filter(item => item.email != meta)
-    console.log("After", doclist.length)
-    metadata.doclist = doclist
-    metdata = JSON.stringify(metadata)
-    console.log("metadata is ", metadata)
+const revokeAccess = async(dlist, publicKey, privateKey, meta) => {
+    for (index in dlist) {
+        let asset = await conn.searchAssets(dlist[index])
+        let transaction = await conn.listTransactions(asset[0].id)
+        console.log(transaction[transaction.length - 1].metadata)
+        let metadata = transaction[transaction.length - 1].metadata
+        let doclist = metadata.doclist
+        console.log("Before", doclist.length)
+        doclist = doclist.filter(item => item.email != meta)
+        console.log("After", doclist.length)
+        metadata.doclist = doclist
+        metdata = JSON.stringify(metadata)
+        console.log("metadata is ", metadata)
 
 
-    const txTransferBob = driver.Transaction.makeTransferTransaction(
+        const txTransferBob = driver.Transaction.makeTransferTransaction(
 
-            [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
-            metadata
-        )
-        // Sign with alice's private key
-    let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
+                [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
+                metadata
+            )
+            // Sign with alice's private key
+        let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
 
-    // Post with commit so transaction is validated and included in a block
-    transfer = await conn.postTransactionCommit(txTransferBobSigned)
-    console.log(transfer.id)
+        // Post with commit so transaction is validated and included in a block
+        transfer = await conn.postTransactionCommit(txTransferBobSigned)
+        console.log(transfer.id)
+    }
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

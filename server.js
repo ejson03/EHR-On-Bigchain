@@ -197,39 +197,42 @@ app.get('/patientaddrec', function(req, res) {
 app.post('/check', function(req, res) {
 
     let count = Object.keys(req.body).length;
-    console.log(count);
-
+    console.log("Objects checked is: ", count);
+    let data = []
     for (i = 0; i < count; i++) {
         if (req.body[i] == undefined) {
             count++;
         } else {
-            console.log(i);
-            console.log(req.body[i]);
-            (async() => {
-                await createAccess(req.body[i], req.session.key.publicKey, req.session.key.privateKey, req.session.demail, encrypt(req.session.email))
-                res.redirect("/patientaddrec")
-            })();
+            data.push(req.body[i])
         }
-    }
+    };
+    console.log(data);
+    (async() => {
+        await createAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail, encrypt(req.session.email))
+        res.redirect("/patientaddrec")
+    })();
+
+
 })
 
 app.post('/uncheck', function(req, res) {
 
     let count = Object.keys(req.body).length;
-    console.log(count);
-
+    console.log(req.body)
+    console.log("Objects checked is: ", count);
+    let data = []
     for (i = 0; i < count; i++) {
         if (req.body[i] == undefined) {
             count++;
         } else {
-            console.log(i);
-            console.log(req.body[i]);
-            (async() => {
-                await revokeAccess(req.body[i], req.session.key.publicKey, req.session.key.privateKey, req.session.demail)
-                res.redirect("/patientaddrec")
-            })();
+            data.push(req.body[i])
         }
-    }
+    };
+    console.log(data);
+    (async() => {
+        await revokeAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail)
+        res.redirect("/patientaddrec")
+    })();
 })
 
 app.post('/viewpres', function(req, res) {
@@ -252,6 +255,36 @@ app.post('/viewpres', function(req, res) {
         res.render('patientpresc.ejs', { 'doc': data, 'email': req.session.email });
     })();
 
+});
+
+app.post('/history', function(req, res) {
+    let assetid = req.body.history;
+    let data = []
+    console.log("assetid: ", assetid);
+    (async() => {
+        let transactions = await conn.listTransactions(assetid)
+        for (index in transactions) {
+            int = []
+            int = {
+                'operation': transactions[index].operation,
+                'date': transactions[index].metadata.datetime,
+                'doctor': []
+            }
+            if (transactions[index].operation == "TRANSFER") {
+                if (transactions[index].metadata.doclist.length > 0) {
+                    for (doc in transactions[index].metadata.doclist) {
+                        console.log(decrypt(transactions[index].metadata.doclist[doc].email))
+                        int['doctor'].push(decrypt(transactions[index].metadata.doclist[doc].email))
+                    }
+                }
+                data.push(int)
+            } else {
+                data.push(int)
+            }
+        }
+        console.log(data)
+        res.render("patientassethistory.ejs", { 'doc': data, 'email': req.session.email })
+    })();
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
