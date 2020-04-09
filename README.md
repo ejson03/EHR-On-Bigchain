@@ -29,7 +29,7 @@ A basic chatbot is also designed to avoid entering data manually into forms. Con
 ![Patient](images/patient.png)
 
 ### Asset History
-![Asset](images/asset.png)
+![Asset](images/history.png)
 
 ### Chat History
 ![chat](images/rasa.png)
