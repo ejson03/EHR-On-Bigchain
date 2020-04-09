@@ -31,12 +31,14 @@ const {
 } = require("./utils/stuff.js")
 
 
-const { RASARequest } = require("./utils/RASA");
+const {
+    RASARequest,
+    getRasaHistory
+} = require("./utils/RASA");
 const RASA_URI = "http://localhost:5005";
 
 // bigchaindb connection
-// const API_PATH = 'http://192.168.33.160:9984/api/v1/'
-const API_PATH = 'https://test.ipdb.io/'
+const API_PATH = 'http://192.168.33.160:9984/api/v1/'
 const driver = require('bigchaindb-driver')
 const bdb = require('easy-bigchain')
 const conn = new driver.Connection(API_PATH)
@@ -405,7 +407,6 @@ app.post("/rasa", cors(), async(req, res) => {
         const message = req.body.message;
         const sender = String(req.session.email);
         const rasa = await RASARequest(RASA_URI, message, sender);
-        console.log(rasa)
         return res.json(rasa);
     } catch (err) {
         console.error("Error: ", err);
@@ -413,19 +414,22 @@ app.post("/rasa", cors(), async(req, res) => {
     }
 })
 
-// app.post("/rasa1", async(req, res) => {
-//     try {
-//         const id = req.body.user;
-//         const name = req.body.name;
-//         const policy = req.body.policy;
-//         const confidence = req.body.confidence;
-//         const rasa = await RASAUtils1(RASA_URI,user, name, policy, confidence);
-//         return res.json(rasa);
-//     } catch (err) {
-//         console.error(err);
-//         return res.json([]);
-//     }
-// })
+app.post("/getrasahistory", cors(), async(req, res) => {
+    let email = req.body.rasa;
+    console.log(email);
+    try {
+        let data = await getRasaHistory(email);
+        console.log(data)
+        res.render('patientrasahistory.ejs', { 'doc': data, 'email': req.session.email });
+    } catch (err) {
+        console.error("Error: ", err);
+        return res.status(500);
+    }
+})
+
+app.post('/pushrasa', async(req, res) => {
+
+})
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -18,6 +18,9 @@
                                 <form method="post" action="/view" class="viewForm">
                                     <button class="btn btn--radius-2 btn--blue viewButton" type="submit" style=" float:right;margin-top: 20px;margin-bottom: 20px;" value="<%= doc[d].file %>" name="b">View</button>
                                 </form>
+                                <form method="post" action="/getrasahistory" class="rasaForm">
+                                    <button class="btn btn--radius-2 btn--blue rasaButton" type="submit" style=" float:right;margin-top: 20px;margin-bottom: 20px;" value="<%= doc[d].email %>" name="rasa">Rasa</button>
+                                </form>
                                 <form method="post" action="/prescribe" class="prescribeForm">
                                     <input type="hidden" name="id" value="<%= doc[d].id %>">
                                     <input type="hidden" name="description" value="<%= doc[d].description %>">
@@ -39,6 +42,9 @@
             });
             $('button.prescribeButton').click(function() {
                 $('form.prescribeForm').submit();
+            });
+            $('button.rasaButton').click(function() {
+                $('form.rasaForm').submit();
             });
         </script>
 
