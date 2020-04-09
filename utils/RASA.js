@@ -2,7 +2,7 @@ const fetch = require("node-fetch")
 
 const RASARequest = async(uri, message, sender) => {
     const response = await fetch.default(
-        `${uri}`, { // /webhooks/rest/webhook`, {
+        `${uri}/webhooks/rest/webhook`, {
             method: "POST",
             contentType: "application/json",
             body: JSON.stringify({ message: message, sender: sender })

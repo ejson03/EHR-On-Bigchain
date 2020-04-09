@@ -37,10 +37,10 @@ function restartConversation() {
 
 // ========================== let the bot start the conversation ========================
 function action_trigger() {
-
-    // send an event to the bot, so that bot can start the conversation by greeting the user
+    console.log("hello")
+        // send an event to the bot, so that bot can start the conversation by greeting the user
     $.ajax({
-        url: `http://localhost:8080/`,
+        url: `http://localhost:5005/conversations/abdulshahlatiiffkhamura@gmail.com/execute`,
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify({ "user": user_id, "name": action_name, "policy": "MappingPolicy", "confidence": "0.98" }),
@@ -119,7 +119,7 @@ $("#sendButton").on("click", function(e) {
 
 //==================================== Set user response =====================================
 function setUserResponse(message) {
-    var UserResponse = `<div  style=\"margin-top: 2px;margin-bottom: 2px;\"><img class=\"userAvatar\" src=\"/images/userAvatar.jpg\"><p class=\"userMsg\">${message} </p></div>`;
+    var UserResponse = `<div><img class=\"userAvatar\" src=\"/images/userAvatar.jpg\"><p class=\"userMsg\">${message} </p></div> <div style=\"height: 40px;\"></div>`;
     $(UserResponse).appendTo(".chats").show("slow");
 
     $(".usrInput").val("");
@@ -138,10 +138,10 @@ function scrollToBottomOfResults() {
 //============== send the user message to rasa server =============================================
 function send(message) {
     $.ajax({
-        url: "http://localhost:8080/rasa",
+        url: "/rasa",
         type: "POST",
         contentType: "application/json",
-        data: JSON.stringify({ message: message, sender: user_id }),
+        data: JSON.stringify({ message: message }),
         success: function(botResponse, status) {
             console.log("Response from Rasa: ", botResponse, "\nStatus: ", status);
 
@@ -183,7 +183,7 @@ function setBotResponse(response) {
             //if there is no response from Rasa, send  fallback message to the user
             var fallbackMsg = "I am facing some issues, please try again later!!!";
 
-            var BotResponse = '<img class=\"botAvatar\" \"src=/images/botAvatar.png\"><p class=\"botMsg\">' + fallbackMsg + '</p><div  style=\"margin-top: 2px;margin-bottom: 2px;\"></div>';
+            var BotResponse = '<div> <img class=\"botAvatar\" src=\"/images/botAvatar.png\"><p class=\"botMsg\">' + fallbackMsg + '</p></div><div style=\"height: 40px;\"></div>';
 
             $(BotResponse).appendTo(".chats").hide().fadeIn(1000);
             scrollToBottomOfResults();
@@ -194,7 +194,7 @@ function setBotResponse(response) {
 
                 //check if the response contains "text"
                 if (response[i].hasOwnProperty("text")) {
-                    var BotResponse = '<img class=\"botAvatar\" src="/images/botAvatar.png"/><p class=\"botMsg\">' + response[i].text + '</p><div style=\"margin-top: 2px;margin-bottom: 2px;\"></div>';
+                    var BotResponse = '<div><img class=\"botAvatar\" src=\"/images/botAvatar.png\"/><p class=\"botMsg\">' + response[i].text + '</p></div><div style=\"height: 40px;\"></div>';
                     $(BotResponse).appendTo(".chats").hide().fadeIn(1000);
                 }
 

@@ -400,16 +400,16 @@ app.post('/view', async function(req, res) {
 })
 
 app.post("/rasa", cors(), async(req, res) => {
+    console.log(req.body);
     try {
-        const message = req.message;
-        const sender = req.sender; //req.session.email;
-        console.log(req)
+        const message = req.body.message;
+        const sender = String(req.session.email);
         const rasa = await RASARequest(RASA_URI, message, sender);
         console.log(rasa)
         return res.json(rasa);
     } catch (err) {
-        console.error(err);
-        return res.json([]);
+        console.error("Error: ", err);
+        return res.status(500);
     }
 })
 
