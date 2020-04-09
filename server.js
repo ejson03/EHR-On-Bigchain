@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 let http = require('http');
+let cors = require('cors');
 let formidable = require('formidable');
 const {
     encrypt,
@@ -30,11 +31,12 @@ const {
 } = require("./utils/stuff.js")
 
 
-const RASAUtils = require("./utils/RASA");
-const RASA_URI = "http://07e546b5.ngrok.io/";
+const { RASARequest } = require("./utils/RASA");
+const RASA_URI = "http://localhost:5005";
 
 // bigchaindb connection
-const API_PATH = 'http://192.168.33.160:9984/api/v1/'
+// const API_PATH = 'http://192.168.33.160:9984/api/v1/'
+const API_PATH = 'https://test.ipdb.io/'
 const driver = require('bigchaindb-driver')
 const bdb = require('easy-bigchain')
 const conn = new driver.Connection(API_PATH)
@@ -114,26 +116,42 @@ app.post('/plogin', function(req, res) {
     req.session.key = key;
     console.log(req.session.key);
     (async() => {
-        let data = await getPatient(email, pass)
-        console.log(data)
-        res.redirect('/patientaddrec')
+        try {
+            let data = await getPatient(email, pass)
+            console.log(data)
+            res.redirect('/patientaddrec')
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })();
 });
 
 app.get('/patientaccdoclist', function(req, res) {
     (async() => {
-        let result = await getMultipleDoctors();
-        console.log(result)
-        res.render('patientaccdoclist.ejs', { 'docs': result, 'email': req.session.email });
+        try {
+            let result = await getMultipleDoctors();
+            console.log(result)
+            res.render('patientaccdoclist.ejs', { 'docs': result, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })();
 })
 
 app.get('/patientmedhistory', function(req, res) {
     console.log(req.session.email);
     (async() => {
-        let data = await conn.searchAssets(encrypt(req.session.email))
-        console.log(data)
-        res.render('patientmedhistory.ejs', { 'doc': data, 'email': req.session.email });
+        try {
+            let data = await conn.searchAssets(encrypt(req.session.email))
+            console.log(data)
+            res.render('patientmedhistory.ejs', { 'doc': data, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
+
     })();
 
 });
@@ -142,18 +160,29 @@ app.post('/access', function(req, res) {
     req.session.demail = req.body.value;
     console.log(req.session.demail);
     (async() => {
-        let data = await showAccess(req.session.demail, req.session.email)
-            // console.log("access data is....", data)
-        res.render('patientaccesstrans.ejs', { 'doc': data, 'email': req.session.email });
+        try {
+            let data = await showAccess(req.session.demail, req.session.email)
+                // console.log("access data is....", data)
+            res.render('patientaccesstrans.ejs', { 'doc': data, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
+
     })();
 
 })
 app.post('/revoke', function(req, res) {
     req.session.demail = req.body.value;
     (async() => {
-        let data = await showRevoke(req.session.demail, req.session.email)
-            // console.log("revoke data is....", data)
-        res.render('patientrevoketrans.ejs', { 'doc': data, 'email': req.session.email });
+        try {
+            let data = await showRevoke(req.session.demail, req.session.email)
+                // console.log("revoke data is....", data)
+            res.render('patientrevoketrans.ejs', { 'doc': data, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })()
 })
 
@@ -183,9 +212,14 @@ app.post('/submitrec', function(req, res) {
             'description': fields.d
         };
         (async() => {
-            let tx = await createAsset(data, req.session.email, fpath, req.session.key.publicKey, req.session.key.privateKey)
-            console.log('Transaction', tx.id, 'successfully posted.')
-            res.redirect('/patientmedhistory')
+            try {
+                let tx = await createAsset(data, req.session.email, fpath, req.session.key.publicKey, req.session.key.privateKey)
+                console.log('Transaction', tx.id, 'successfully posted.')
+                res.redirect('/patientmedhistory')
+            } catch (err) {
+                console.error(err);
+                return res.sendStatus(404);
+            }
         })();
     });
 });
@@ -208,8 +242,13 @@ app.post('/check', function(req, res) {
     };
     console.log(data);
     (async() => {
-        await createAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail, encrypt(req.session.email))
-        res.redirect("/patientaddrec")
+        try {
+            await createAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail, encrypt(req.session.email))
+            res.redirect("/patientaddrec")
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })();
 
 
@@ -230,8 +269,13 @@ app.post('/uncheck', function(req, res) {
     };
     console.log(data);
     (async() => {
-        await revokeAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail)
-        res.redirect("/patientaddrec")
+        try {
+            await revokeAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail)
+            res.redirect("/patientaddrec")
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })();
 })
 
@@ -240,19 +284,24 @@ app.post('/viewpres', function(req, res) {
     console.log(demail);
     let data = [];
     (async() => {
-        let assets = await conn.searchAssets(demail)
-        console.log(assets.length)
-        for (const id in assets) {
-            let inter = await conn.searchAssets(assets[id].data.assetID)
-            if (inter[0].data.email == encrypt(req.session.email)) {
-                data.push({
-                    'prescription': assets[0].data.prescription,
-                    'file': decrypt(inter[0].data.file)
-                })
+        try {
+            let assets = await conn.searchAssets(demail)
+            console.log(assets.length)
+            for (const id in assets) {
+                let inter = await conn.searchAssets(assets[id].data.assetID)
+                if (inter[0].data.email == encrypt(req.session.email)) {
+                    data.push({
+                        'prescription': assets[0].data.prescription,
+                        'file': decrypt(inter[0].data.file)
+                    })
+                }
             }
+            console.log(data)
+            res.render('patientpresc.ejs', { 'doc': data, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
         }
-        console.log(data)
-        res.render('patientpresc.ejs', { 'doc': data, 'email': req.session.email });
     })();
 
 });
@@ -262,28 +311,33 @@ app.post('/history', function(req, res) {
     let data = []
     console.log("assetid: ", assetid);
     (async() => {
-        let transactions = await conn.listTransactions(assetid)
-        for (index in transactions) {
-            int = []
-            int = {
-                'operation': transactions[index].operation,
-                'date': transactions[index].metadata.datetime,
-                'doctor': []
-            }
-            if (transactions[index].operation == "TRANSFER") {
-                if (transactions[index].metadata.doclist.length > 0) {
-                    for (doc in transactions[index].metadata.doclist) {
-                        console.log(decrypt(transactions[index].metadata.doclist[doc].email))
-                        int['doctor'].push(decrypt(transactions[index].metadata.doclist[doc].email))
-                    }
+        try {
+            let transactions = await conn.listTransactions(assetid)
+            for (index in transactions) {
+                int = []
+                int = {
+                    'operation': transactions[index].operation,
+                    'date': transactions[index].metadata.datetime,
+                    'doctor': []
                 }
-                data.push(int)
-            } else {
-                data.push(int)
+                if (transactions[index].operation == "TRANSFER") {
+                    if (transactions[index].metadata.doclist.length > 0) {
+                        for (doc in transactions[index].metadata.doclist) {
+                            console.log(decrypt(transactions[index].metadata.doclist[doc].email))
+                            int['doctor'].push(decrypt(transactions[index].metadata.doclist[doc].email))
+                        }
+                    }
+                    data.push(int)
+                } else {
+                    data.push(int)
+                }
             }
+            console.log(data)
+            res.render("patientassethistory.ejs", { 'doc': data, 'email': req.session.email })
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
         }
-        console.log(data)
-        res.render("patientassethistory.ejs", { 'doc': data, 'email': req.session.email })
     })();
 });
 
@@ -304,8 +358,13 @@ app.post('/otp', function(req, res) {
             let gen = encrypt(req.session.gen);
             let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, dob: dob, gen: gen };
             (async() => {
-                let data = await insertDetails("psignup", myobj)
-                res.render('patientaddrec.ejs', { 'email': req.session.email });
+                try {
+                    let data = await insertDetails("psignup", myobj)
+                    res.render('patientaddrec.ejs', { 'email': req.session.email });
+                } catch (err) {
+                    console.error(err);
+                    return res.sendStatus(404);
+                }
             })();
 
         }
@@ -340,17 +399,33 @@ app.post('/view', async function(req, res) {
     }
 })
 
-app.post("/rasa/", async(req, res) => {
+app.post("/rasa", cors(), async(req, res) => {
     try {
-        const message = req.body.message;
-        const sender = req.session.email;
-        const rasa = await RASAUtils.default(RASA_URI, message, sender);
+        const message = req.message;
+        const sender = req.sender; //req.session.email;
+        console.log(req)
+        const rasa = await RASARequest(RASA_URI, message, sender);
+        console.log(rasa)
         return res.json(rasa);
     } catch (err) {
         console.error(err);
         return res.json([]);
     }
 })
+
+// app.post("/rasa1", async(req, res) => {
+//     try {
+//         const id = req.body.user;
+//         const name = req.body.name;
+//         const policy = req.body.policy;
+//         const confidence = req.body.confidence;
+//         const rasa = await RASAUtils1(RASA_URI,user, name, policy, confidence);
+//         return res.json(rasa);
+//     } catch (err) {
+//         console.error(err);
+//         return res.json([]);
+//     }
+// })
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -395,9 +470,14 @@ app.post('/dlogin', function(req, res) {
     req.session.key = key;
     console.log(req.session.key);
     (async() => {
-        let data = await getSingleDoctor(email, pass, "login")
-        console.log(data)
-        res.render('docprofile.ejs', { 'data': data, 'email': req.session.email });
+        try {
+            let data = await getSingleDoctor(email, pass, "login")
+            console.log(data)
+            res.render('docprofile.ejs', { 'data': data, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })();
 });
 
@@ -418,17 +498,29 @@ app.post('/dsave', function(req, res) {
 
     let myobj = { fname: fn, lname: ln, email: email, password: pass, phone: phone, cw: cw, gen: gen, spl: spl, qual: qual };
     (async() => {
-        let data = await insertDetails("dsignup", myobj)
-        res.redirect('/docdetails')
+        try {
+            let data = await insertDetails("dsignup", myobj)
+            res.redirect('/docdetails')
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
+
     })();
 
 })
 
 app.get('/doclist', function(req, res) {
     (async() => {
-        let data = await getDoctorFiles(encrypt(req.session.email))
-        console.log(data)
-        res.render('doctorasset.ejs', { 'doc': data, 'email': req.session.email });
+        try {
+            let data = await getDoctorFiles(encrypt(req.session.email))
+            console.log(data)
+            res.render('doctorasset.ejs', { 'doc': data, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
+
     })();
 })
 
@@ -436,9 +528,14 @@ app.get('/docdetails', function(req, res) {
     let email = encrypt(req.session.email);
     let pass = encrypt(req.session.pass);
     (async() => {
-        let data = await getSingleDoctor(email, pass, "details")
-        console.log(data)
-        res.render('docprofile.ejs', { 'data': data, 'email': req.session.email });
+        try {
+            let data = await getSingleDoctor(email, pass, "details")
+            console.log(data)
+            res.render('docprofile.ejs', { 'data': data, 'email': req.session.email });
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })();
 })
 
@@ -469,9 +566,14 @@ app.post('/addprescription', function(req, res) {
         'id': id
     };
     (async() => {
-        let tx = await createPrescription(data, metadata, pkey, req.session.key.privateKey)
-        console.log("Transction id :", tx.id)
-        res.redirect('/docdetails')
+        try {
+            let tx = await createPrescription(data, metadata, pkey, req.session.key.privateKey)
+            console.log("Transction id :", tx.id)
+            res.redirect('/docdetails')
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
     })();
 
 })
@@ -481,5 +583,5 @@ app.post('/addprescription', function(req, res) {
 app.use('/', router);
 app.listen(process.env.port || 8080,
     function() {
-        console.log("App listening on port 8000.....")
+        console.log("App listening on port 8080.....")
     });

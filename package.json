@@ -19,6 +19,7 @@
     "dependencies": {
         "bigchaindb-driver": "^4.1.2",
         "cookie-session": "^1.4.0",
+        "cors": "^2.8.5",
         "crypto": "^1.0.1",
         "easy-bigchain": "^1.0.1",
         "ejs": "^3.0.2",

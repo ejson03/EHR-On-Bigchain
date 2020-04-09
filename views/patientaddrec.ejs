@@ -95,7 +95,47 @@
                 </div>
             </div>
         </div>
+        <div class="container">
+            <!-- Modal for rendering the charts, declare this if you want to render charts, 
+            else you remove the modal -->
+            <div id="modal1" class="modal">
+                <canvas id="modal-chart"></canvas>
+            </div>
 
+            <!--chatbot widget -->
+            <div class="widget">
+                <div class="chat_header">
+
+                    <!--Add the name of the bot here -->
+
+                    <div class="dropdown " style="float:right;">
+                        <button class="dropbtn" style="background-color: transparent;">:</button>
+                        <div class=" dropdown-content">
+                            <a href="#" id="clear">Clear</a>
+                            <a href="#" id="restart">Restart</a>
+                            <a href="#" id="close">Close</a>
+                        </div>
+                    </div>
+                    <span class="chat_header_title">Healthchain</span>
+                </div>
+
+                <!--Chatbot contents goes here -->
+                <div class="chats" id="chats">
+                    <div class="clearfix"></div>
+                </div>
+
+                <!--keypad for user to type the message -->
+                <div class="keypad">
+                    <textarea id="userInput" placeholder="Type a message..." class="usrInput"></textarea>
+                    <div id="sendButton"><i class="fa fa-paper-plane" aria-hidden="true"></i></div>
+                </div>
+            </div>
+
+            <!--bot profile-->
+            <div class="profile_div" id="profile_div">
+                <img class="imgProfile" src="/images/botAvatar.png" />
+            </div>
+        </div>
 
         <!--JavaScript at end of body for optimized loading-->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
