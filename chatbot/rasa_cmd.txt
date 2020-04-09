@@ -1,0 +1,12 @@
+rasa train ---for training
+
+rasa test ----for testing
+
+rasa shell ----for interacting
+
+rasa run -m models --enable-api --cors “*” --debug --log-file out.log   ---------for using it on frontend
+
+
+
+
+

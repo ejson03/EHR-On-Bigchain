@@ -1,0 +1,11 @@
+policies:
+  - name: TEDPolicy
+    epochs: 100
+    max_history: 6
+  - name: MemoizationPolicy
+    max_history: 6
+  - name: FallbackPolicy
+    nlu_threshold: 0.1
+    core_threshold: 0.3
+    fallback_action_name: 'action_default_fallback''
+  - name: FormPolicy
