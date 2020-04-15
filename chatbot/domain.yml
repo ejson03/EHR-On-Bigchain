@@ -1,6 +1,6 @@
 session_config:
   session_expiration_time: 500
-  carry_over_slots_to_new_session: true
+  carry_over_slots_to_new_session: false
 intents:
 - medicine
 - thank
@@ -9,7 +9,6 @@ intents:
 - bye
 - out_of_scope
 - greet
-- thankyou
 - deny
 - affirm
 - ask_weather
@@ -650,7 +649,6 @@ actions:
 - utter_ask_whatismyname
 - utter_ask_languagesbot
 - utter_happy
-- utter_cheer_up
 - utter_smalltalk_agent_acquaintance
 - utter_smalltalk_agent_age
 - utter_smalltalk_agent_annoying

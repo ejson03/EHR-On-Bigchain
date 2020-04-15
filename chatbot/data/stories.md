@@ -29,7 +29,7 @@
   - utter_greet
 * mood_happy
   - utter_happy
-* goodbye
+* bye
   - utter_bye
 
 ## sad_path
@@ -37,7 +37,7 @@
   - utter_greet
 * mood_unhappy
   - utter_telljoke
-* goodbye
+* bye
   - utter_bye
 
 ## Generated Story -8395475876387399729
@@ -69,16 +69,6 @@
 * medicine{"symptom": "headache"}
     - slot{"symptom": "headache"}
     - action_medicine
-
-## Generated Story -2385938240831074220
-* out_of_scope
-    - utter_default
-* out_of_scope
-    - utter_default
-* out_of_scope
-    - utter_default
-* out_of_scope
-    - utter_default
 
 ## Generated Story 7439725141992755319
 * get_happy_images
