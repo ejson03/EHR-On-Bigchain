@@ -10,6 +10,8 @@ const { v4: uuidv4 } = require('uuid');
 const API_PATH = 'http://192.168.33.160:9984/api/v1/';
 const driver = require('bigchaindb-driver');
 const conn = new driver.Connection(API_PATH);
+const bdb = require('easy-bigchain')
+const adminKeys = bdb.generateKeypair('admin');
 
 const getPublicKey = async(type, email) =>{
     const user = await conn.searchAssets(email, type);
@@ -38,7 +40,7 @@ const listPrescription = async(type, pemail, cemail) =>{
 }
 
 
-const createUser = async (name, email, type, publicKey, adminKeys, institution=null, profession=null) =>{
+const createUser = async (name, email, type, publicKey,institution=null, profession=null) =>{
     let asset = {
         'type': type,
         'name': name,
