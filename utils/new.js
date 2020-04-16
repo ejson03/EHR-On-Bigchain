@@ -16,25 +16,27 @@ const getPublicKey = async(type, email) =>{
     return user[0].data.publicKey;
 }
 
-const listPendingPrescription = async(pemail, cemail) =>{
-    let nplusone = await conn.searchAssets(encrypt(cemail));
-    let genesis = await conn.searchAssets(encrypt(pemail), encrypt(cemail));
-    let data = []
-    for (const asset of assets) {
-        transaction = await conn.listTransactions(asset.id)
-        doclist = transaction[transaction.length - 1].metadata.doclist
-        let result = doclist.filter(st => st.email.includes(demail))
-        if (result.length == 0) {
-            data.push(asset)
+const listPrescription = async(type, pemail, cemail) =>{
+    let done = []
+    let pending = []
+    let genesis = await conn.searchMetadata(encrypt(pemail), encrypt(cemail));
+    for (index in genesis){
+        gasset = await conn.listTransactions(genesis[index].id)[0];
+        gassetid = gasset.id;
+        asset = await conn.searchAssets(assetid);
+        if(asset.length != 0){
+            done.push(asset[0].data)
+        } else{
+            pending.push(gasset)
         }
     }
-    return data
+    if(type=="done"){
+        return done
+    } else {
+        return pending;
+    }
 }
 
-const listResolvedPrescription = async(type, email) =>{
-    const user = await conn.searchAssets(email, type);
-    return user[0].data.publicKey;
-}
 
 const createUser = async (name, email, type, publicKey, adminKeys, institution=null, profession=null) =>{
     let asset = {
@@ -64,7 +66,7 @@ const createUser = async (name, email, type, publicKey, adminKeys, institution=n
     return tx;
 }
 
-const doctorCreateAsset = async(data, pemail, demail, cemail, fpath, privateKey) => {
+const doctorCreateAsset = async(asset, metadata, fpath, publicKey, privateKey) => {
     let file = fs.readFileSync(fpath);
     let cipher = encrypt(file);
     let fileBuffer = new Buffer(cipher);
@@ -74,34 +76,22 @@ const doctorCreateAsset = async(data, pemail, demail, cemail, fpath, privateKey)
     let fileIPFSEncrypted = encrypt(fileIPFS[0].hash);
     let id = uuidv4();
 
-    data['doctorEmail'] = encrypt(demail)
-    data['file'] = fileIPFSEncrypted
-    data['fileHash'] = hash(cipher)
-    data['id'] = id
+    asset['file'] = fileIPFSEncrypted
+    asset['fileHash'] = hash(cipher)
+    asset['id'] = id
 
-    const metadata = {
-        'patientEmail': encrypt(pemail),
-        'clinicianEmail': encrypt(cemail),
-        'datetime': new Date().toString(),
-        'id': id,
-        'status': 'genesis'
-    }
+    metadata['id'] = id
 
-    let clinicianPublicKey = await getPublicKey('clinician', cemail);
     const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
-        data,
+        asset,
         metadata,
         [driver.Transaction.makeOutput(
-            driver.Transaction.makeEd25519Condition(clinicianPublicKey))],
-            clinicianPublicKey
+            driver.Transaction.makeEd25519Condition(publicKey))],
+            publicKey
     )
     const txCreateAliceSimpleSigned = driver.Transaction.signTransaction(txCreateAliceSimple, privateKey)
     tx = await conn.postTransactionCommit(txCreateAliceSimpleSigned)
     return tx
 };
 
-const clinicianTransferAsset = async () =>{
-
-
-}
 
