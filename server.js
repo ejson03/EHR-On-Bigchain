@@ -70,10 +70,15 @@ app.engine('.html', require('ejs').renderFile);
 
 //start of main
 app.get('/', function(req, res) {
-    res.render('SampleScroll.html');
+    res.render('index.html');
 });
 //end of main
-
+app.get('/login', function(req, res) {
+    res.render('login.html');
+});
+app.get('/signup', function(req, res) {
+    res.render('signup.html');
+});
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get('/patientaccdoclist', function(req, res) {
@@ -255,90 +260,90 @@ app.post('/history', function(req, res) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-app.post('/signup', function(req, res) {
-    req.session.email = req.body.email;
-    req.session.pass = encrypt(req.body.pass);
-    req.session.name = req.body.fname + " " + req.body.lname;
-    req.session.type = req.body.type;
-    req.session.activity = "signup";
-    if(req.body.qualification){
-        req.session.qual = req.body.qualification;
-        req.session.ins = req.body.institution;
-    }
-    let otp = generateOTP();
-    console.log(`${otp} is the otp for ${req.body.email}`);
-    req.session.otp = otp;
-    generateKeys(encrypt(req.session.email))
-    generateEmail(email, otp)
-    res.render('otp.html');
-});
+// app.post('/signup', function(req, res) {
+//     req.session.email = req.body.email;
+//     req.session.pass = encrypt(req.body.pass);
+//     req.session.name = req.body.fname + " " + req.body.lname;
+//     req.session.type = req.body.type;
+//     req.session.activity = "signup";
+//     if(req.body.qualification){
+//         req.session.qual = req.body.qualification;
+//         req.session.ins = req.body.institution;
+//     }
+//     let otp = generateOTP();
+//     console.log(`${otp} is the otp for ${req.body.email}`);
+//     req.session.otp = otp;
+//     generateKeys(encrypt(req.session.email))
+//     generateEmail(email, otp)
+//     res.render('otp.html');
+// });
 
-app.post('/login', function(req, res) {
+// app.post('/login', function(req, res) {
 
-    req.session.email = req.body.email;
-    req.session.pass = encrypt(req.body.pass);
-    req.session.type = req.session.type;
-    req.session.activity = "login"
-    let otp = generateOTP();
-    console.log(`${otp} is the otp for ${req.body.email}`);
-    req.session.otp = otp;
-    generateEmail(email, otp)
-    res.render('otp.html');
-});
+//     req.session.email = req.body.email;
+//     req.session.pass = encrypt(req.body.pass);
+//     req.session.type = req.session.type;
+//     req.session.activity = "login"
+//     let otp = generateOTP();
+//     console.log(`${otp} is the otp for ${req.body.email}`);
+//     req.session.otp = otp;
+//     generateEmail(email, otp)
+//     res.render('otp.html');
+// });
 
-//when clciked submit in otp page
-app.post('/otp', function(req, res) {
+// //when clciked submit in otp page
+// app.post('/otp', function(req, res) {
 
-    if (req.body.uotp == req.session.otp) {
-        const key = bdb.generateKeypair(req.session.pass);
-        req.session.key = key;
-        console.log(`Bigchaindb keys: ${req.session.key}`)
-        if(req.session.activity == "signup"){
-            if(req.session.type == "patient"){
-                (async() => {
-                    try {
-                        let tx = createUser(req.session.name, req.session.email, req.session.type, req.session.key.publicKey)
-                        console.log(`${tx.id} user created`);
-                        res.render('patientaddrec.ejs', { 'email': req.session.email });
-                    } catch (err) {
-                        console.error(err);
-                        return res.sendStatus(404);
-                    }
-                })();
-            }
-            else {
-                (async() => {
-                    try {
-                        let tx = createUser(req.session.name, req.session.email, req.session.type, req.session.key.publicKey)
-                        console.log(`${tx.id} user created`);
-                        if(req.session.type == "clinician"){
-                            res.render('patientaddrec.ejs', { 'email': req.session.email });
-                        } else {
-                            res.render('patientaddrec.ejs', { 'email': req.session.email });
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        return res.sendStatus(404);
-                    }
-                })();
-            }
-        } else {
-            if(req.session.type == "patient"){
-                res.render('patientaddrec.ejs', { 'email': req.session.email });
-            } 
-            else if (req.session.type == "clinician"){
-                res.render('patientaddrec.ejs', { 'email': req.session.email });
-            }
-            else {
-                res.render('patientaddrec.ejs', { 'email': req.session.email });
-            }
-        }
-    } else {
-        console.log(req.body.uotp);
-        console.log(req.session.otp);
-    }
+//     if (req.body.uotp == req.session.otp) {
+//         const key = bdb.generateKeypair(req.session.pass);
+//         req.session.key = key;
+//         console.log(`Bigchaindb keys: ${req.session.key}`)
+//         if(req.session.activity == "signup"){
+//             if(req.session.type == "patient"){
+//                 (async() => {
+//                     try {
+//                         let tx = createUser(req.session.name, req.session.email, req.session.type, req.session.key.publicKey)
+//                         console.log(`${tx.id} user created`);
+//                         res.render('patientaddrec.ejs', { 'email': req.session.email });
+//                     } catch (err) {
+//                         console.error(err);
+//                         return res.sendStatus(404);
+//                     }
+//                 })();
+//             }
+//             else {
+//                 (async() => {
+//                     try {
+//                         let tx = createUser(req.session.name, req.session.email, req.session.type, req.session.key.publicKey)
+//                         console.log(`${tx.id} user created`);
+//                         if(req.session.type == "clinician"){
+//                             res.render('patientaddrec.ejs', { 'email': req.session.email });
+//                         } else {
+//                             res.render('patientaddrec.ejs', { 'email': req.session.email });
+//                         }
+//                     } catch (err) {
+//                         console.error(err);
+//                         return res.sendStatus(404);
+//                     }
+//                 })();
+//             }
+//         } else {
+//             if(req.session.type == "patient"){
+//                 res.render('patientaddrec.ejs', { 'email': req.session.email });
+//             } 
+//             else if (req.session.type == "clinician"){
+//                 res.render('patientaddrec.ejs', { 'email': req.session.email });
+//             }
+//             else {
+//                 res.render('patientaddrec.ejs', { 'email': req.session.email });
+//             }
+//         }
+//     } else {
+//         console.log(req.body.uotp);
+//         console.log(req.session.otp);
+//     }
 
-});
+// });
 
 app.post('/view', async function(req, res) {
     console.log(req.body);

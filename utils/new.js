@@ -68,7 +68,7 @@ const createUser = async (name, email, type, publicKey,institution=null, profess
     return tx;
 }
 
-const doctorCreateAsset = async(asset, metadata, fpath, publicKey, privateKey) => {
+const createAsset = async(asset, metadata, fpath, publicKey, privateKey) => {
     let file = fs.readFileSync(fpath);
     let cipher = encrypt(file);
     let fileBuffer = new Buffer(cipher);
