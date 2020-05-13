@@ -1,124 +1,70 @@
 let { encryptRSA, encrypt, hash, decrypt } = require("./crypto.js")
-const path = require('path');
-const fs = require('fs');
-//ipfs connection
-const ipfsAPI = require('ipfs-api');
-const ipfs = ipfsAPI('ipfs.infura.io', '5001', { protocol: 'https' });
-// mongo connection
-let MongoClient = require('mongodb').MongoClient;
-let url = "mongodb://192.168.33.160:27017/";
-// bigchaindb connection
-const API_PATH = 'http://192.168.33.160:9984/api/v1/'
-const driver = require('bigchaindb-driver')
-const conn = new driver.Connection(API_PATH)
+let {AddFile} = require("./ipfs.js")
+let {getAsset, getMetadata, transferAsset, createAsset, listTransactions} = require("./bigchain.js")
+let {generateOTP} = require("../utils/utils.js")
 
+const getRSAKey = async (email, schema) => {
+    let asset = await getAsset(email);
+    asset.filter((data) => {
+        return data['data']['schema'] ==  schema;
+    })
+    return asset[0]['data']['rsa_key']
+}
 
-let mail = require('./email.json');
-let nodemailer = require('nodemailer');
-let transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: mail.email,
-        pass: mail.password
-    }
-});
+const getBigchainPublicKey = async (email, schema) => {
+    let asset = await getAsset(email);
+    asset.filter((data) => {
+        return data['data']['schema'] ==  schema;
+    })
+    return asset[0]['data']['bigchain_key']
+}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-const generateOTP = () => {
+const getEmail = async (key, schema) => {
+    let asset = await getAsset(key);
+    asset.filter((data) => {
+        return data['data']['schema'] ==  schema;
+    })
+    return asset[0]['data']['email']
+}
 
-    // Declare a digits letiable  
-    // which stores all digits 
-    let digits = '0123456789';
-    let OTP = '';
-    for (let i = 0; i < 4; i++) {
-        OTP += digits[Math.floor(Math.random() * 10)];
-    }
-    return OTP;
-};
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-const generateEmail = (email, otp) => {
-    let mailOptions = {
-        from: mail.email,
-        to: email,
-        subject: 'Sending Email using Node.js',
-        text: otp
-    };
-    transporter.sendMail(mailOptions, function(error, info) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
-};
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const createAccess = async(dlist, publicKey, privateKey, meta, kpath) => {
+const createAccess = async(dlist, publicKey, privateKey, doctorEmail, secretKey) => {
     for (index in dlist) {
-        let asset = await conn.searchAssets(dlist[index])
-        let transaction = await conn.listTransactions(asset[0].id)
-        console.log(transaction.length)
+        let transaction = await listTransactions(dlist[index])
         data = {
-            'email': meta,
-            'key': encryptRSA('d6F3Efeq', path.join(`keys/${kpath}`, 'public.pem'))
+            'email': doctorEmail,
+            'key': encryptRSA(secretKey, getRSAKey(doctorEmail, 'doctor'))
         }
-        console.log(transaction[transaction.length - 1].metadata)
         metadata = transaction[transaction.length - 1].metadata
         metadata['doclist'].push(data)
         metdata = JSON.stringify(metadata)
         console.log("metadata is ", metadata)
 
-        const txTransferBob = driver.Transaction.makeTransferTransaction(
-
-                [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
-                metadata
-            )
-            // Sign with alice's private key
-        let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
-
-        // Post with commit so transaction is validated and included in a block
-        transfer = await conn.postTransactionCommit(txTransferBobSigned)
-        console.log(transfer.id)
+        let tx = await transferAsset(transaction[transaction.length - 1], metadata, publicKey, privateKey)
+        console.log(tx.id)
     }
-
-
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const revokeAccess = async(dlist, publicKey, privateKey, meta) => {
+const revokeAccess = async(dlist, publicKey, privateKey, doctorEmail) => {
     for (index in dlist) {
-        let asset = await conn.searchAssets(dlist[index])
-        let transaction = await conn.listTransactions(asset[0].id)
-        console.log(transaction[transaction.length - 1].metadata)
+        let transaction = await conn.listTransactions(dlist[index])
         let metadata = transaction[transaction.length - 1].metadata
         let doclist = metadata.doclist
         console.log("Before", doclist.length)
-        doclist = doclist.filter(item => item.email != meta)
+        doclist = doclist.filter(item => item.email != doctorEmail)
         console.log("After", doclist.length)
         metadata.doclist = doclist
         metdata = JSON.stringify(metadata)
         console.log("metadata is ", metadata)
-
-
-        const txTransferBob = driver.Transaction.makeTransferTransaction(
-
-                [{ tx: transaction[transaction.length - 1], output_index: 0 }], [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
-                metadata
-            )
-            // Sign with alice's private key
-        let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey)
-
-        // Post with commit so transaction is validated and included in a block
-        transfer = await conn.postTransactionCommit(txTransferBobSigned)
-        console.log(transfer.id)
+        let tx = await transferAsset(transaction[transaction.length - 1], metadata, publicKey, privateKey)
+        console.log(tx.id)
     }
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const showAccess = async(demail, email) => {
-    let assets = await conn.searchAssets(encrypt(email))
+const showAccess = async(demail, records) => {
     let data = []
-    for (const asset of assets) {
-        transaction = await conn.listTransactions(asset.id)
+    for (const asset of records) {
+        transaction = await listTransactions(asset.id)
         doclist = transaction[transaction.length - 1].metadata.doclist
         let result = doclist.filter(st => st.email.includes(demail))
         if (result.length == 0) {
@@ -129,12 +75,11 @@ const showAccess = async(demail, email) => {
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const showRevoke = async(demail, email) => {
-    let assets = await conn.searchAssets(encrypt(email))
+const showRevoke = async(demail, records) => {
     let data = []
 
-    for (const asset of assets) {
-        transaction = await conn.listTransactions(asset.id)
+    for (const asset of records) {
+        transaction = await listTransactions(asset.id)
         doclist = transaction[transaction.length - 1].metadata.doclist
         let result = doclist.filter(st => st.email.includes(demail))
         if (result.length != 0) {
@@ -144,114 +89,69 @@ const showRevoke = async(demail, email) => {
     return data
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const createAsset = async(data, email, fpath, publicKey, privateKey) => {
+const createRecord = async(data, email, fpath, publicKey, privateKey, secretKey) => {
     let file = fs.readFileSync(fpath);
-    let cipher = encrypt(file);
+    let cipher = encrypt(file, secretKey);
     let fileBuffer = new Buffer(cipher);
 
-    let fileIPFS = await ipfs.files.add(fileBuffer)
-    console.log("IPFS hash: ", fileIPFS[0].hash);
-    let fileIPFSEncrypted = encrypt(fileIPFS[0].hash);
+    let ipfsURL = await AddFile(fileBuffer);
+    let fileIPFSEncrypted = encrypt(ipfsURL, secretKey);
     let id = generateOTP();
 
-    data['email'] = encrypt(email)
-    data['file'] = fileIPFSEncrypted
-    data['fileHash'] = hash(cipher)
-    data['id'] = id
+    data = {
+        ...data,
+        'email':email,
+        'file':fileIPFSEncrypted,
+        'fileHash':hash(cipher),
+        'id':id
+    }
 
-
-    const metadata = {
-        'email': encrypt(email),
+    let metadata = {
+        'email': email,
         'datetime': new Date().toString(),
         'doclist': [],
         'id': id
     }
 
-    // Construct a transaction payload
-    const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
-        data,
-        metadata,
-
-        // A transaction needs an output
-        [driver.Transaction.makeOutput(
-            driver.Transaction.makeEd25519Condition(publicKey))],
-        publicKey
-    )
-
-    // Sign the transaction with private keys of Alice to fulfill it
-    const txCreateAliceSimpleSigned = driver.Transaction.signTransaction(txCreateAliceSimple, privateKey)
-
-    // Send the transaction off to BigchainDB
-    tx = await conn.postTransactionCommit(txCreateAliceSimpleSigned)
+    let tx = await createAsset(data, metadata, publicKey, privateKey)
     return tx
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-const getSingleDoctor = async(email, pass, action) => {
-    let data = {}
-    let db = await MongoClient.connect(url);
-    let dbo = db.db("project");
-    let result = await dbo.collection("dsignup").findOne({ email: email });
-    console.log(result);
-    if (action == "login") {
-        if (email == result.email && pass == result.password) {
-            data = {
-                'email': decrypt(result.email),
-                'name': `${result.fname} ${result.lname}`,
-                'qualification': result.qual,
-                'specialty': result.spl,
-                'current': result.cw
+
+const getAssetHistory = async(assetid) => {
+    let transactions = await listTransactions(assetid)
+    for (index in transactions) {
+        int = []
+        int = {
+            'operation': transactions[index].operation,
+            'date': transactions[index].metadata.datetime,
+            'doctor': []
+        }
+        if (transactions[index].operation == "TRANSFER") {
+            if (transactions[index].metadata.doclist.length > 0) {
+                for (doc in transactions[index].metadata.doclist) {
+                    int['doctor'].push(transactions[index].metadata.doclist[doc].email)
+                }
             }
-            console.log("login succesful.........");
+            data.push(int)
         } else {
-            console.log("not okay");
+            data.push(int)
         }
-    } else {
-        data = {
-            'email': decrypt(result.email),
-            'name': `${result.fname} ${result.lname}`,
-            'qualification': result.qual,
-            'specialty': result.spl,
-            'current': result.cw
-        }
-        console.log("Retrieved dctor deatilas successfully.....");
     }
-    db.close();
     return data;
-
-};
-///////////////////////////////////////////////////////////////////////////////////////////////
-const insertDetails = async(collection, myobj) => {
-    let db = await MongoClient.connect(url);
-    let dbo = db.db("project");
-    let result = await dbo.collection(collection).insertOne(myobj);
-    console.log(`Inserted detils into ${collection}`);
-    db.close();
-    return result
-};
-/////////////////////////////////////////////////////////////////////////////////////////////////
-const getMultipleDoctors = async() => {
-    let db = await MongoClient.connect(url);
-    let dbo = db.db("project");
-    let result = await dbo.collection('dsignup').find({}).toArray();
-    return result
-};
-/////////////////////////////////////////////////////////////////////////////////////////////////
-const getPatient = async(email, pass) => {
-    let data = {}
-    let db = await MongoClient.connect(url);
-    let dbo = db.db("project");
-    let result = await dbo.collection("psignup").findOne({ email: email });
-
-    console.log(result);
-    if (email == result.email && pass == result.password) {
-        db.close();
-        data = { 'email': result.email }
-        return data;
-    } else {
-        db.close();
-        console.log("not okay");
+}
+const getPrescription = async (email, demail) =>{
+    let assets = await getAsset(demail)
+    for (const id in assets) {
+        let inter = await getAsset(assets[id].data.assetID)
+        if (inter[0].data.email == encreq.session.email)) {
+            data.push({
+                'prescription': assets[0].data.prescription,
+                'file': decrypt(inter[0].data.file)
+            })
+        }
     }
-};
+    console.log(data)
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const getDoctorFiles = async(email) => {
     let metadata = await conn.searchMetadata(email);
@@ -288,7 +188,6 @@ const getDoctorFiles = async(email) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 const createPrescription = async(data, metadata, patientPublicKey, privateKey) => {
-    console.log(privateKey)
     const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
         data,
         metadata, [driver.Transaction.makeOutput(
@@ -300,22 +199,84 @@ const createPrescription = async(data, metadata, patientPublicKey, privateKey) =
     return tx
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// const getSingleDoctor = async(email, pass, action) => {
+//     let data = {}
+//     let db = await MongoClient.connect(url);
+//     let dbo = db.db("project");
+//     let result = await dbo.collection("dsignup").findOne({ email: email });
+//     console.log(result);
+//     if (action == "login") {
+//         if (email == result.email && pass == result.password) {
+//             data = {
+//                 'email': decrypt(result.email),
+//                 'name': `${result.fname} ${result.lname}`,
+//                 'qualification': result.qual,
+//                 'specialty': result.spl,
+//                 'current': result.cw
+//             }
+//             console.log("login succesful.........");
+//         } else {
+//             console.log("not okay");
+//         }
+//     } else {
+//         data = {
+//             'email': decrypt(result.email),
+//             'name': `${result.fname} ${result.lname}`,
+//             'qualification': result.qual,
+//             'specialty': result.spl,
+//             'current': result.cw
+//         }
+//         console.log("Retrieved dctor deatilas successfully.....");
+//     }
+//     db.close();
+//     return data;
+
+// };
+///////////////////////////////////////////////////////////////////////////////////////////////
+// const insertDetails = async(collection, myobj) => {
+//     let db = await MongoClient.connect(url);
+//     let dbo = db.db("project");
+//     let result = await dbo.collection(collection).insertOne(myobj);
+//     console.log(`Inserted detils into ${collection}`);
+//     db.close();
+//     return result
+// };
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// const getMultipleDoctors = async() => {
+//     let db = await MongoClient.connect(url);
+//     let dbo = db.db("project");
+//     let result = await dbo.collection('dsignup').find({}).toArray();
+//     return result
+// };
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// const getPatient = async(email, pass) => {
+//     let data = {}
+//     let db = await MongoClient.connect(url);
+//     let dbo = db.db("project");
+//     let result = await dbo.collection("psignup").findOne({ email: email });
+
+//     console.log(result);
+//     if (email == result.email && pass == result.password) {
+//         db.close();
+//         data = { 'email': result.email }
+//         return data;
+//     } else {
+//         db.close();
+//         console.log("not okay");
+//     }
+// };
+
 
 
 
 module.exports = {
     createAccess,
     revokeAccess,
-    generateEmail,
-    generateOTP,
     showAccess,
     showRevoke,
-    createAsset,
-    getSingleDoctor,
-    insertDetails,
-    getMultipleDoctors,
-    getPatient,
+    createRecord,
     getDoctorFiles,
-    createPrescription
-
+    createPrescription,
+    getAssetHistory
 }

@@ -40,21 +40,10 @@ const listPrescription = async(type, pemail, cemail) =>{
 }
 
 
-const createUser = async (name, email, type, publicKey,institution=null, profession=null) =>{
-    let asset = {
-        'type': type,
-        'name': name,
-        'email': email,
-        'publicKey': publicKey
-    };
-    if(type == "doctor" & institution != null & profession != null){
-        asset['institution'] =  institution
-        asset['profession'] = profession
-    }
-    let metadata = {
-        'date': new Date(),
-        'timestamp': Date.now()
-    };
+const createUser = async (asset, metadata) =>{
+
+    metadata ['date'] =  new Date();
+
     const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
         asset,
         metadata,
@@ -96,4 +85,10 @@ const createAsset = async(asset, metadata, fpath, publicKey, privateKey) => {
     return tx
 };
 
+module.exports = {
+   createAsset,
+   createUser,
+   listPrescription,
+   getPublicKey
+}
 

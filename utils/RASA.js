@@ -1,11 +1,8 @@
 const fetch = require("node-fetch")
-    // mongo connection
+
+// mongo connection
 let MongoClient = require('mongodb').MongoClient;
-let url = "mongodb://192.168.33.160:27017/";
-// bigchaindb connection
-const API_PATH = 'http://192.168.33.160:9984/api/v1/'
-const driver = require('bigchaindb-driver')
-const conn = new driver.Connection(API_PATH)
+let url = process.env.MONGO_URL || "mongodb://localhost:27017/";
 
 const RASARequest = async(uri, message, sender) => {
     const response = await fetch.default(

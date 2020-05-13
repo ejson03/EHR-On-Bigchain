@@ -33,7 +33,12 @@ const GetFile = async(ipfsName) => {
     return (files[0].content);
 }
 
+const AddFile = async(fileBuffer) =>{
+    return await ipfs.files.add(fileBuffer)[0].hash
+}
+
 module.exports = {
     Download,
-    GetFile
+    GetFile,
+    AddFile
 }

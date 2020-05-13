@@ -2,15 +2,22 @@ let crypto = require('crypto');
 let path = require('path')
 const fs = require('fs');
 
-const encrypt = (text) => {
-    let cipher = crypto.createCipher('aes-256-cbc', 'd6F3Efeq')
+const createSecretKey = ()=>{
+    return crypto.randomBytes(32);
+}
+
+const generateIV = () =>{
+    return crypto.randomBytes(16).toString('hex').slice(0, 16);
+}
+const encrypt = (text="", key="d6F3Efeq") => {
+    let cipher = crypto.createCipheriv('aes-256-cbc', key, generateIV())
     let crypted = cipher.update(text, 'utf8', 'hex')
     crypted += cipher.final('hex');
     return crypted;
 }
 
-const decrypt = (text) => {
-    let decipher = crypto.createDecipher('aes-256-cbc', 'd6F3Efeq')
+const decrypt = (text="", key="d6F3Efeq") => {
+    let decipher = crypto.createDecipheriv('aes-256-cbc', key)
     let dec = decipher.update(text, 'hex', 'utf8')
     dec += decipher.final('utf8');
     return dec;
@@ -29,7 +36,7 @@ const hash = (text) => {
     return crypto.createHash('sha1').update(JSON.stringify(text)).digest('hex')
 }
 
-const generateKeys = (dir) => {
+const generateRSAKeys = (dir) => {
     const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: 4096,
         publicKeyEncoding: {
@@ -43,10 +50,7 @@ const generateKeys = (dir) => {
             passphrase: '',
         },
     })
-    kpath = `keys/${dir}`
-    fs.mkdirSync(kpath)
-    fs.writeFileSync(path.join(kpath, 'private.pem'), privateKey)
-    fs.writeFileSync(path.join(kpath, 'public.pem'), publicKey)
+    return [privateKey, publicKey]
 }
 
 const encryptRSA = (data, publicKeyPath) => {
@@ -78,5 +82,6 @@ module.exports = {
     encryptRSA,
     decryptRSA,
     hash,
-    generateKeys
+    generateRSAKeys,
+    createSecretKey
 }
