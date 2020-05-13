@@ -4,3 +4,4 @@ package-lock.json
 rasa
 .vscode
 dummy-code
+.env
