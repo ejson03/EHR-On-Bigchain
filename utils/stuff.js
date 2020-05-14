@@ -140,26 +140,27 @@ const getAssetHistory = async(assetid) => {
     return data;
 }
 const getPrescription = async (email, demail) =>{
+    data = []
     let assets = await getAsset(demail)
     for (const id in assets) {
         let inter = await getAsset(assets[id].data.assetID)
-        if (inter[0].data.email == encreq.session.email)) {
+        if (inter[0].data.email == email) {
             data.push({
                 'prescription': assets[0].data.prescription,
                 'file': decrypt(inter[0].data.file)
             })
         }
     }
-    console.log(data)
+    return data
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 const getDoctorFiles = async(email) => {
-    let metadata = await conn.searchMetadata(email);
+    let metadata = getMetadata(email);
     let data = [];
     let assetlist = new Set();
 
     for (const meta of metadata) {
-        tx = await conn.listTransactions(meta.id)
+        tx = await listTransactions(meta.id)
         assetlist.add(tx[tx.length - 1].asset.id)
     }
     assetlist = [...assetlist]
@@ -167,14 +168,14 @@ const getDoctorFiles = async(email) => {
         return element !== undefined;
     });
     for (const asset of assetlist) {
-        tx = await conn.listTransactions(asset)
+        tx = await listTransactions(asset)
         docs = tx[tx.length - 1].metadata.doclist
         let result = docs.filter(st => st.email.includes(email))
         if (result.length != 0) {
-            let ass = await conn.searchAssets(asset)
+            let ass = await getAsset(asset)
 
             data.push({
-                'email': decrypt(ass[0].data.email),
+                'email': ass[0].data.email,
                 'file': decrypt(ass[0].data.file),
                 'description': ass[0].data.description,
                 'id': asset,
@@ -185,20 +186,9 @@ const getDoctorFiles = async(email) => {
     console.log(data)
     return data;
 };
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-const createPrescription = async(data, metadata, patientPublicKey, privateKey) => {
-    const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
-        data,
-        metadata, [driver.Transaction.makeOutput(
-            driver.Transaction.makeEd25519Condition(patientPublicKey))],
-        patientPublicKey
-    )
-    const txCreateAliceSimpleSigned = driver.Transaction.signTransaction(txCreateAliceSimple, privateKey)
-    tx = await conn.postTransactionCommit(txCreateAliceSimpleSigned)
-    return tx
-};
-//////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // const getSingleDoctor = async(email, pass, action) => {
 //     let data = {}
@@ -277,6 +267,6 @@ module.exports = {
     showRevoke,
     createRecord,
     getDoctorFiles,
-    createPrescription,
+    getPrescription,
     getAssetHistory
 }

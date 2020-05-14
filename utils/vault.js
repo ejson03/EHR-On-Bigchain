@@ -4,16 +4,14 @@ const Vault = new VaultAccess({
 	Authority: ["create", "read", "update", "delete", "list", "sudo"],
 	Path: 'path',
 	Policy: 'auth_policy',
-	EndPoint: String(process.env.VAULT_URL),
+	EndPoint: process.env.VAULT_URL,
 	UserName: "username",
 	SecretMountPoint: 'secret_zone',
-	Token: String(process.env.VAULT_TOKEN),
+	Token: process.env.VAULT_TOKEN,
 	CertificateMountPoint: "certificate"
 })
+Vault.Setup()
 
-const setup = async() => {
-    await Vault.Setup();
-};
 
 const signUp = async(password, username) => {
     await Vault.SignUp(password, username);
@@ -36,7 +34,6 @@ const getUsers = async() => {
 }
 
 module.exports = {
-	setup,
 	signUp,
 	login,
 	write,

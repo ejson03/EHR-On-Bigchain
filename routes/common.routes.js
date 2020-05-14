@@ -21,7 +21,8 @@ common.get('/signup', function(req, res) {
 
 common.post('/register', function(req, res) {
     req.session.email = req.body.email;
-    req.session.pass = encrypt(req.body.pass);
+    req.session.username = req.body.username;
+    req.session.pass = req.body.pass;
     req.session.name = req.body.name;
     req.session.type = req.body.type;
     req.session.activity = "signup";
@@ -42,19 +43,20 @@ common.post('/register', function(req, res) {
 common.post('/enter', function(req, res) {
 
     req.session.email = req.body.email;
-    req.session.pass = encrypt(req.body.pass);
-    req.session.type = req.session.type;
+    req.session.username = req.body.username;
+    req.session.pass = req.body.pass;
+    req.session.type = req.body.type;
     req.session.activity = "login"
     let otp = generateOTP();
     console.log(`${otp} is the otp for ${req.body.email}`);
     req.session.otp = otp;
-    generateEmail(email, otp)
+    generateEmail(req.session.email, otp)
     res.render('otp.html');
 });
 
 common.post('/otp', function(req, res) {
     if (req.body.uotp == req.session.otp) {
-        let user = new User(req.session.email, req.session.type, req.session.pass)
+        let user = new User(req.session.username, req.session.type, req.session.pass)
         if(req.session.activity == "signup"){
             let asset = {'name':req.session.name, 
                         'email':req.session.email, 
@@ -64,10 +66,9 @@ common.post('/otp', function(req, res) {
             if(req.session.type == "Patient"){
                 (async() => {
                     try {
-                        let tx = await user.createUser(asset, req.session.pass, req.session.email);
+                        let tx = await user.createUser(asset, req.session.pass, req.session.username);
                         req.session.user = user;
-                        console.log(`${tx.id} user created`);
-                        res.render('patientaddrec.ejs', { 'email': req.session.email });
+                        res.redirect("/user/home");
                     } catch (err) {
                         console.error(err);
                         return res.sendStatus(404);
@@ -83,12 +84,12 @@ common.post('/otp', function(req, res) {
                             'qualification': req.session.qual,
                             'location' : req.session.loc
                         }
-                        let tx = await req.session.user.createUser(asset, req.session.pass, req.session.email)
-                        console.log(`${tx.id} user created`);
+                        let tx = await user.createUser(asset, req.session.pass, req.session.username)
+                        req.session.user = user;
                         if(req.session.type == "clinician"){
-                            res.render('patientaddrec.ejs', { 'email': req.session.email });
+                            res.redirect("/clinician/home");
                         } else {
-                            res.render('patientaddrec.ejs', { 'email': req.session.email });
+                            res.redirect("/doctor/home");
                         }
                     } catch (err) {
                         console.error(err);
@@ -99,15 +100,15 @@ common.post('/otp', function(req, res) {
         } else {
             if(req.session.type == "patient"){
                 req.session.user = user;
-                res.render('patientaddrec.ejs', { 'email': req.session.email });
+                res.redirect("/user/home");
             } 
             else if (req.session.type == "clinician"){
                 req.session.user = user;
-                res.render('patientaddrec.ejs', { 'email': req.session.email });
+                res.redirect("/clinician/home");
             }
             else {
                 req.session.user = user;
-                res.render('docprofile.ejs', { 'email': req.session.email });
+                res.redirect("/doctor/home");
             }
         }
     } else {
@@ -127,10 +128,8 @@ common.post('/view', async function(req, res) {
     }
     try {
         let buffer = await GetFile(url1);
-        console.log("got file....now decrypting...")
-        buffer = decryptFile(buffer.toString('utf-8'))
+        buffer = decryptFile(buffer.toString('utf-8'), req.session.user.secretKey)
         buffer = new Buffer(buffer, "binary");
-        console.log(buffer)
         await Download(res, buffer);
     } catch (err) {
         console.error(err);
@@ -139,10 +138,9 @@ common.post('/view', async function(req, res) {
 })
 
 common.post("/rasa", cors(), async(req, res) => {
-    console.log(req.body);
     try {
         const message = req.body.message;
-        const sender = String(req.session.email);
+        const sender = String(req.session.name);
         const rasa = await RASARequest(RASA_URI, message, sender);
         return res.json(rasa);
     } catch (err) {
@@ -153,7 +151,6 @@ common.post("/rasa", cors(), async(req, res) => {
 
 common.post("/getrasahistory", cors(), async(req, res) => {
     let email = req.body.rasa;
-    console.log(email);
     try {
         let data = await getRasaHistory(email);
         console.log(data)
@@ -167,7 +164,7 @@ common.post("/getrasahistory", cors(), async(req, res) => {
 
 common.post('/logout', function(req, res) {
     req.session = null;
-    res.render('SampleScroll.html');
+    res.render('index.html');
 })
 
 module.exports.common = common;

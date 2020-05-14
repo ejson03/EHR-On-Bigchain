@@ -28,6 +28,7 @@
         "cookie-session": "^1.4.0",
         "cors": "^2.8.5",
         "crypto": "^1.0.1",
+        "dotenv": "^8.2.0",
         "easy-bigchain": "^1.0.1",
         "ejs": "^3.0.2",
         "ejs-lint": "^1.0.1",
@@ -41,8 +42,8 @@
         "node-vault-user-pass": "0.0.4",
         "nodemailer": "^6.4.6",
         "open": "^7.0.3",
-        "uuid": "^7.0.3",
-        "ps-tree": "^1.2.0"
+        "ps-tree": "^1.2.0",
+        "uuid": "^7.0.3"
     },
     "devDependencies": {
         "nodemon": "^2.0.2",

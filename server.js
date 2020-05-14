@@ -1,24 +1,28 @@
 const path = require('path');
 const express = require('express');
+require('dotenv').config();
+
 const bodyParser = require('body-parser');
 const {common} = require("./routes/common.routes")
 const {user} = require("./routes/user.routes")
 const {doctor} = require("./routes/doctor.routes")
 const app = express();
 var cookieSession = require('cookie-session')
-//let session = require('express-session')
+let session = require('express-session')
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(session({
-//     secret: 'ssshhhhh',
-//     resave: false,
-//     saveUninitialized: true,
-// }));
-app.use(cookieSession({
-    name: 'session',
+app.use(session({
     secret: 'ssshhhhh',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+    resave: false,
+    saveUninitialized: true,
+    credentials : 'include'
+}));
+// app.use(cookieSession({
+//     name: 'session',
+//     secret: 'ssshhhhh',
+//     maxAge: 24 * 60 * 60 * 1000, // 24 hours,
+//     credentials : 'include'
+// }))
 
 
 app.use(express.static(path.join(__dirname, 'public')));

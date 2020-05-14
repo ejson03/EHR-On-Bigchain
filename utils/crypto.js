@@ -3,7 +3,7 @@ let path = require('path')
 const fs = require('fs');
 
 const createSecretKey = ()=>{
-    return crypto.randomBytes(32);
+    return crypto.randomBytes(32).toString('hex').slice(0,32);
 }
 
 const generateIV = () =>{
@@ -47,10 +47,13 @@ const generateRSAKeys = (dir) => {
             type: 'pkcs1',
             format: 'pem',
             cipher: 'aes-256-cbc',
-            passphrase: '',
+            passphrase: ''
         },
     })
-    return [privateKey, publicKey]
+    return {
+        'privateKey': privateKey,
+        'publicKey': publicKey
+    }
 }
 
 const encryptRSA = (data, publicKeyPath) => {

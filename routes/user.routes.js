@@ -1,17 +1,18 @@
 const {Router} = require("express")
 const {getAsset} = require("../utils/bigchain")
-const {createRecord, getAssetHistory} = require('../utils/stuff.js')
+const {createRecord, getAssetHistory, showAccess, showRevoke, createAccess, revokeAccess, getPrescription} = require('../utils/stuff.js')
 
+const user = Router()
+module.exports.user = user;
 
-
-app.get('/list', function(req, res) {
+user.get('/doctorlist', function(req, res) {
     (async() => {
         try {
             let result = await getAsset('doctor');
             result.filter((data) => {
                 return data['data']
             });
-            res.render('patientaccdoclist.ejs', { 'docs': result, 'email': req.session.email });
+            res.render('patientaccdoclist.ejs', { 'docs': result});
         } catch (err) {
             console.error(err);
             return res.sendStatus(404);
@@ -19,12 +20,12 @@ app.get('/list', function(req, res) {
     })();
 })
 
-app.get('/history', function(req, res) {
+user.get('/medicalhistory', function(req, res) {
     (async() => {
         try {
             let data = req.session.user.records;
             console.log(data)
-            res.render('patientmedhistory.ejs', { 'doc': data, 'email': req.session.email });
+            res.render('patientmedhistory.ejs', { 'doc': data});
         } catch (err) {
             console.error(err);
             return res.sendStatus(404);
@@ -34,12 +35,12 @@ app.get('/history', function(req, res) {
 
 });
 
-app.post('/access', function(req, res) {
+user.post('/access', function(req, res) {
     req.session.demail = req.body.value;
     (async() => {
         try {
             let data = await showAccess(req.session.demail, req.session.user.records)
-            res.render('patientaccesstrans.ejs', { 'doc': data, 'email': req.session.email });
+            res.render('patientaccesstrans.ejs', { 'doc': data});
         } catch (err) {
             console.error(err);
             return res.sendStatus(404);
@@ -48,13 +49,13 @@ app.post('/access', function(req, res) {
     })();
 
 })
-app.post('/revoke', function(req, res) {
+user.post('/revoke', function(req, res) {
     req.session.demail = req.body.value;
     (async() => {
         try {
             let data = await showRevoke(req.session.demail, req.session.user.records)
                 // console.log("revoke data is....", data)
-            res.render('patientrevoketrans.ejs', { 'doc': data, 'email': req.session.email });
+            res.render('patientrevoketrans.ejs', { 'doc': data});
         } catch (err) {
             console.error(err);
             return res.sendStatus(404);
@@ -63,11 +64,12 @@ app.post('/revoke', function(req, res) {
 })
 
 
-app.get('/home', function(req, res) {
-    res.render('patientaddrec.ejs', { 'email': req.session.email });
+user.get('/home', function(req, res) {
+    console.log(req.session.username)
+    res.render('patientaddrec.ejs');
 })
 
-app.post('/check', function(req, res) {
+user.post('/check', function(req, res) {
     let count = Object.keys(req.body).length;
     let data = []
     for (i = 0; i < count; i++) {
@@ -79,7 +81,7 @@ app.post('/check', function(req, res) {
     };
     (async() => {
         try {
-            await createAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail, req.session.user.secret_key)
+            await createAccess(data, req.session.user.bigchainKeys.publicKey, req.session.user.bigchainKeys.privateKey, req.session.demail, req.session.user.secretKey)
             res.redirect("/user/home")
         } catch (err) {
             console.error(err);
@@ -90,7 +92,7 @@ app.post('/check', function(req, res) {
 
 })
 
-app.post('/uncheck', function(req, res) {
+user.post('/uncheck', function(req, res) {
 
     let count = Object.keys(req.body).length;
     console.log(req.body)
@@ -106,7 +108,7 @@ app.post('/uncheck', function(req, res) {
     console.log(data);
     (async() => {
         try {
-            await revokeAccess(data, req.session.key.publicKey, req.session.key.privateKey, req.session.demail)
+            await revokeAccess(data, req.session.user.bigchainKeys.publicKey, req.session.user.bigchainKeys.privateKey, req.session.demail)
             res.redirect("/user/home")
         } catch (err) {
             console.error(err);
@@ -115,60 +117,28 @@ app.post('/uncheck', function(req, res) {
     })();
 })
 
-app.post('/viewpres', function(req, res) {
+user.post('/prescription', function(req, res) {
     let demail = req.body.demail;
-    console.log(demail);
+    (async() => {
+        try {
+            let data = await getPrescription(demail);
+            res.render('patientpresc.ejs', { 'doc': data});
+        } catch (err) {
+            console.error(err);
+            return res.sendStatus(404);
+        }
+    })();
+
+});
+
+user.post('/assethistory', function(req, res) {
+    let assetid = req.body.history;
     let data = [];
     (async() => {
         try {
-            let assets = await conn.searchAssets(demail)
-            console.log(assets.length)
-            for (const id in assets) {
-                let inter = await conn.searchAssets(assets[id].data.assetID)
-                if (inter[0].data.email == encrypt(req.session.email)) {
-                    data.push({
-                        'prescription': assets[0].data.prescription,
-                        'file': decrypt(inter[0].data.file)
-                    })
-                }
-            }
+            let data = getAssetHistory(assetid);
             console.log(data)
-            res.render('patientpresc.ejs', { 'doc': data, 'email': req.session.email });
-        } catch (err) {
-            console.error(err);
-            return res.sendStatus(404);
-        }
-    })();
-
-});
-
-app.post('/history', function(req, res) {
-    let assetid = req.body.history;
-    let data = []
-    (async() => {
-        try {
-            let transactions = await listTransactions(assetid)
-            for (index in transactions) {
-                int = []
-                int = {
-                    'operation': transactions[index].operation,
-                    'date': transactions[index].metadata.datetime,
-                    'doctor': []
-                }
-                if (transactions[index].operation == "TRANSFER") {
-                    if (transactions[index].metadata.doclist.length > 0) {
-                        for (doc in transactions[index].metadata.doclist) {
-                            console.log(decrypt(transactions[index].metadata.doclist[doc].email))
-                            int['doctor'].push(decrypt(transactions[index].metadata.doclist[doc].email))
-                        }
-                    }
-                    data.push(int)
-                } else {
-                    data.push(int)
-                }
-            }
-            console.log(data)
-            res.render("patientassethistory.ejs", { 'doc': data, 'email': req.session.email })
+            res.render("patientassethistory.ejs", { 'doc': data})
         } catch (err) {
             console.error(err);
             return res.sendStatus(404);
@@ -176,7 +146,7 @@ app.post('/history', function(req, res) {
     })();
 });
 
-app.post('/add', function(req, res) {
+user.post('/add', function(req, res) {
     new formidable.IncomingForm().parse(req, (err, fields, files) => {
         if (err) {
             console.error('Error', err)
@@ -196,9 +166,9 @@ app.post('/add', function(req, res) {
         };
         (async() => {
             try {
-                let tx = await createRecord(data, req.session.email, fpath, req.session.key.publicKey, req.session.key.privateKey. req.session.user.secret_key)
+                let tx = await createRecord(data, req.session.email, fpath, req.session.user.bigchainKeys.publicKey, req.session.user.bigchainKeys.privateKey, req.session.user.secretKey)
                 console.log('Transaction', tx.id, 'successfully posted.')
-                res.redirect('/history')
+                res.redirect('/user/medicalhistory')
             } catch (err) {
                 console.error(err);
                 return res.sendStatus(404);

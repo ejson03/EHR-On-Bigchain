@@ -18,12 +18,6 @@
                               font-size: 21px;
                               border: none;
                               cursor: pointer;">
-                            <form action="/action_page.php">
-                                <input type="text" placeholder="Search.." name="search">
-                                <i class="fa fa-search" style="position: absolute;  width: 100%; 
-            margin-bottom: 70px;padding: 10px; 
-            min-width: 20px;  "></i>
-                            </form>
                         </div>
                         <% for (var d=0;d<docs.length;d++){ %>
                             <div class="w3-container w3-card w3-white w3-round w3-margin" style="width:800px;"><br>
@@ -39,17 +33,17 @@
                                 <h4 style="font-size:20px;font-weight: bold; color:#000000;"> QUALIFICATION:
                                     <%= docs[d].qual %>
                                 </h4>
-                                <form action="/access" method="post">
+                                <form action="/user/access" method="post">
                                     <div class="p-t-15">
                                         <button class="btn btn--radius-2 btn--blue" type="submit" style="float:initial;margin-left: 525px;padding-right: 75px; " value="<%= docs[d].email%>" name="value"> Give Access</button>
                                     </div>
                                 </form>
-                                <form action="/revoke" method="post">
+                                <form action="/user/revoke" method="post">
                                     <div class="p-t-15">
                                         <button class="btn btn--radius-2 btn--blue" type="submit" style="float:initial;margin-left: 525px; " value="<%= docs[d].email%>" name="value"> Revoke Access</button>
                                     </div>
                                 </form>
-                                <form action="/viewpres" method="post">
+                                <form action="/user/prescription" method="post">
                                     <div class="p-t-15">
                                         <button class="btn btn--radius-2 btn--blue" type="submit" style="float:initial;margin-left: 525px; padding-right: 75px; margin-bottom: 20px; " value="<%= docs[d].email%>" name="demail"> Prescription</button>
                                     </div>
