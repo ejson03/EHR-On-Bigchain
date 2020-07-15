@@ -20,10 +20,7 @@ There is a rapid increase in generation of medical data especially in a situatio
 
 BigchainDB is a decentralized database that has immutability just like traditional blockchains. We have attempted to develop an end to end system for succesful storage, transfer and tracking of patient healthcare data. All records are encrypted using AES-256 encryption and the access for this data is transferred through blockchain and assymetric cryptography. Due to limited blockchain data storage, files are being stored in IPFS.
 
-A basic chatbot is also designed to avoid entering data manually into forms. Conversational history is tracked and stored on the blockchain too to maintain credibility of the chatbot performance.
 
-### RASA Chatbot Plugin
-![Chatbot Demo](images/chatbot.gif)
 
 ### Patient Functions
 ![Patient](images/patient.png)
@@ -31,8 +28,6 @@ A basic chatbot is also designed to avoid entering data manually into forms. Con
 ### Asset History
 ![Asset](images/history.png)
 
-### Chat History
-![chat](images/rasa.png)
 
 More screenshots available * [here](https://github.com/ejson03/EHR-On-Bigchain/tree/master/images)
 
@@ -82,11 +77,7 @@ cd block-visualization
 npm install
 npm start
 ```
-Chatbot Setup
-```
-rasa run actions
-rasa run -m models --endpoint endpoints.yml --enable-api --cors “*” --debug --log-file out.log 
-```
+
 
 Change the url for MongoDB and BigchainDB appropriately with repect to your working environments
 
