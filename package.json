@@ -6,8 +6,8 @@
     "homepage": "./",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "node_start": "nodemon server.js",
-        "start": "electron .",
+        "start": "nodemon server.js",
+        "electron-start": "electron .",
         "package": "npm run -s package-win && npm run -s package-cleanup",
         "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64  --prune=true --out=release-builds",
         "package-win": "electron-packager . --overwrite --asar --platform=win32 --arch=ia32  --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Music Player\"",
@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "bigchaindb-driver": "^4.1.2",
+        "connect-flash": "^0.1.1",
         "cookie-session": "^1.4.0",
         "cors": "^2.8.5",
         "crypto": "^1.0.1",
@@ -36,6 +37,7 @@
         "express-session": "^1.17.0",
         "formidable": "^1.2.2",
         "ipfs-api": "^26.1.2",
+        "moment": "^2.27.0",
         "mongodb": "^3.5.5",
         "node-fetch": "^2.6.0",
         "node-rsa": "^1.0.8",

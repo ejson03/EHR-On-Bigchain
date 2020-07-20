@@ -1,93 +1,118 @@
-const {createBigchainKeys, getAsset, createAsset} = require("../utils/bigchain.js")
-const {login, signUp, read, write} = require("../utils/vault.js")
-const {generateRSAKeys, encrypt, createSecretKey } = require("../utils/crypto")
+const { cryptoService, bigchainService, vaultService } = require("../services");
+
 class User {
-
-    constructor(username, schema, password) {
-        this.registered = null;
-        this.records = null;
-        this.user = this.getBio(username, schema, password);
-        console.log("User is ", this.user)
-        if (this.records === null && this.registered){
-            this.records = this.getRecords(username)
-            console.log("Records", this.records)
-        }
-
+  constructor(username, schema, password) {
+    this.registered = null;
+    this.records = null;
+    this.user = this.getBio(username, schema, password);
+    console.log("User is ", this.user);
+    if (this.records === null && this.registered) {
+      this.records = this.getRecords(username);
+      console.log("Records", this.records);
     }
-    getBio(username, schema, password){
-        try{
-            let records = getAsset(username);
-            records = records.filter(function (data) {
-                return data.schema == schema 
-            });
-            this.registered = true
-            login(password, username)
-            this.read_keys()
-            return records[0]['data'] 
-        }catch{
-            this.registered = false
-            return
-        }
+  }
+  getBio(username, schema, password) {
+    try {
+      let records = bigchainService.getAsset(username);
+      records = records.filter(function (data) {
+        return data.schema == schema;
+      });
+      this.registered = true;
+      vaultService.login(password, username);
+      this.read_keys();
+      return records[0]["data"];
+    } catch {
+      this.registered = false;
+      return;
     }
+  }
 
-    writeKeys(username){
-        this.secretKey = createSecretKey()
-        this.bigchainKeys = createBigchainKeys(encrypt(username, this.secretKey))
-        this.rsaKeys = generateRSAKeys()
-        let value = [this.bigchainKeys.privateKey, 
-                this.bigchainKeys.publicKey,
-                this.rsaKeys.privateKey,
-                this.rsaKeys.publicKey, 
-                this.secretKey]
-        let keys = ['bigchainPrivateKey', 'bigchainPublicKey', 'rsaPrivateKey', 'rsaPublicKey', 'secretKey']
-        keys.forEach((key, index) =>{
-            write(key, value[index])
-        });
+  writeKeys(username) {
+    try {
+      this.secretKey = cryptoService.createSecretKey();
+      this.bigchainKeys = bigchainService.createBigchainKeys(
+        cryptoService.encrypt(username, this.secretKey)
+      );
+      this.rsaKeys = cryptoService.generateRSAKeys();
+      let value = [
+        this.bigchainKeys.privateKey,
+        this.bigchainKeys.publicKey,
+        this.rsaKeys.privateKey,
+        this.rsaKeys.publicKey,
+        this.secretKey,
+      ];
+      let keys = [
+        "bigchainPrivateKey",
+        "bigchainPublicKey",
+        "rsaPrivateKey",
+        "rsaPublicKey",
+        "secretKey",
+      ];
+      keys.forEach((key, index) => {
+        vaultService.write(key, value[index]);
+      });
+    } catch (error) {
+      console.log(error);
     }
+  }
 
-    readKeys(){
-        this.bigchainKeys.privateKey = read('bigchainPrivateKey')
-        this.bigchainKeys.publicKey = read('bigchainPublicKey')
-        this.rsaKeys.privateKey =read('rsaPrivateKey')
-        this.rsaKeys.publicKey = read('rsaPublicKey')
-        this.secretKey = read('secretKey')
+  readKeys() {
+    this.bigchainKeys.privateKey = vaultService.read("bigchainPrivateKey");
+    this.bigchainKeys.publicKey = vaultService.read("bigchainPublicKey");
+    this.rsaKeys.privateKey = vaultService.read("rsaPrivateKey");
+    this.rsaKeys.publicKey = vaultService.read("rsaPublicKey");
+    this.secretKey = vaultService.read("secretKey");
+  }
+
+  async createUser(asset, password, username) {
+    try {
+      await vaultService.signUp(password, username);
+      this.writeKeys(username);
+      let data = {
+        ...asset,
+        date: new Date().toString(),
+        bigchainKey: this.bigchainKeys.publicKey.toString(),
+        rsaKey: this.rsaKeys.publicKey.toString(),
+      };
+      let tx = await bigchainService.createAsset(
+        data,
+        null,
+        this.bigchainKeys.publicKey,
+        this.bigchainKeys.privateKey
+      );
+      console.log(tx);
+      this.user = tx.asset.data;
+      //this.records = this.getRecords(username)
+      this.registered = true;
+      return tx;
+    } catch (error) {
+      console.log("Error is", error);
+      return false;
     }
+  }
 
-
-    async createUser(asset, password, username){
-        await signUp(password, username)
-        this.writeKeys(username)
-        let data = {...asset,
-            'date' : new Date().toString(),
-            'bigchainKey' : this.bigchainKeys.publicKey.toString(),
-            'rsaKey' : this.rsaKeys.publicKey.toString()
-        }
-        let tx = await createAsset(data, null, this.bigchainKeys.publicKey, this.bigchainKeys.privateKey)
-        this.user = tx.asset.data
-        //this.records = this.getRecords(username)
-        this.registered = true
-        return tx
+  getRecords(username) {
+    let records = [];
+    if (this.records === null) {
+      try {
+        records = bigchainService.getAsset(username);
+      } catch {
+        return [];
+      }
+      records.filter(function (record) {
+        return (
+          record.data.schema == "record" &&
+          record.data.user.bigchainKey == this.user.bigchainKey
+        );
+      });
+      return records;
     }
-    
-    getRecords(username){
-        let records = []
-        if (this.records === null){
-            try{
-                records = getAsset(username)
-            } catch {
-                return []
-            }
-            records.filter(function (record){
-                return record.data.schema == 'record' && record.data.user.bigchainKey == this.user.bigchainKey
-            } );
-            return records;
-        }
-    } 
+  }
 }
 
 module.exports = {
-    User
-}
+  User,
+};
 
 //  write_record(this, ipfs_hash, form){}
 //     console.log(this.bigchainKeys['public_key'])
@@ -106,7 +131,7 @@ module.exports = {
 //         'id'{} str(id),
 //         'date'{} datetime.now().strftime("%s")
 //     }
-    
+
 //     tx = bdb.transactions.prepare(
 //         operation='CREATE',
 //         signers=this.bigchainKeys['public_key'],
@@ -118,7 +143,7 @@ module.exports = {
 //         private_keys=this.bigchainKeys['private_key']
 //     )
 //     sent = bdb.transactions.send_commit(signed_tx)
-//     return sent 
+//     return sent
 
 //  get_transfer_details(this, tx){}
 //     output = tx['outputs'][0]
@@ -150,7 +175,7 @@ module.exports = {
 //         key = RSA.importKey(this.get_doctor_key(doctor))
 //         doc.append({
 //             'username'{} doctor,
-//             'key'{} encrypt_rsa(this.secretKey.encode(), key).decode()
+//             'key'{} cryptoService.encrypt_rsa(this.secretKey.encode(), key).decode()
 //         })
 //     metadata['doclist'] = doc
 //     metadata['date'] = datetime.now().strftime("%s")
@@ -160,7 +185,7 @@ module.exports = {
 //     asset = this.get_assets(asset)
 //     tx = this.get_transactions(asset[0]['id'])[-1]
 //     transfer_asset, transfer_input = this.get_transfer_details(tx)
-    
+
 //     metadata = this.get_meta_details(tx, doclist)
 //     prepared_tx = bdb.transactions.prepare(
 //         operation='TRANSFER',
@@ -177,5 +202,3 @@ module.exports = {
 
 //     tx = bdb.transactions.send_commit(signed)
 //     return tx
-  
-
