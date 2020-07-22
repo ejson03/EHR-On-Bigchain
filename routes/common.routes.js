@@ -23,8 +23,6 @@ commonRouter.post("/view", commonController.view);
 
 commonRouter.post("/rasa", cors(), commonController.rasa);
 
-// commonRouter.post("/getrasahistory", cors(),);
-
 commonRouter.post("/logout", function (req, res) {
   req.session = null;
   res.render("index.html");

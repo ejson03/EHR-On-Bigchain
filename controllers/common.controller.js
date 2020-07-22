@@ -5,7 +5,6 @@ const {
   ipfsService,
 } = require("../services");
 const { User } = require("../models/user.models");
-const cors = require("cors");
 
 exports.signUp = async (req, res) => {
   let data = {
@@ -48,8 +47,8 @@ exports.signUp = async (req, res) => {
       errors,
     });
   } else {
-    let users = await vaultService.getUsers;
-    if (data.username in users) {
+    const users = await vaultService.getUsers();
+    if (users.includes(data.username)) {
       errors.push({ msg: "User already exists" });
       res.render("signup.html", {
         errors,
@@ -145,14 +144,15 @@ exports.getOTP = async (req, res) => {
 };
 
 exports.view = async (req, res) => {
-  let url1 = "";
-  let status = req.body.url;
-  if (status == "encrypted") {
-    url1 = decrypt(req.body.b);
-  } else {
-    url1 = req.body.b;
-  }
   try {
+    const status = String(req.body.url);
+    let url1 = "";
+    if (status === "encrypted") {
+      url1 = decrypt(req.body.b);
+    } else {
+      url1 = req.body.b;
+    }
+
     let buffer = await GetFile(url1);
     buffer = decryptFile(buffer.toString("utf-8"), req.session.user.secretKey);
     buffer = new Buffer(buffer, "binary");

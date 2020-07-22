@@ -17,9 +17,7 @@ const getDate = (day, state) => {
 const getUsers = async () => {
   let collection = await getConversationCollection();
   let users = await collection.find();
-  users = users.filter((user) => {
-    return user["sender_id"];
-  });
+  users = users.map(user => user["sender_id"]);
   return users;
 };
 
@@ -29,8 +27,7 @@ const getSingleUser = async (id) => {
 };
 
 const getRasaHistory = async (email) => {
-  let user = getSingleUser(email);
-  let date = getDate;
+  const user = await getSingleUser(email);
   user.events.forEach((event) => {
     if (event.event == "session_started") {
       start = new Date(event.timestamp * 1000);

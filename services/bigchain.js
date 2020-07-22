@@ -23,7 +23,7 @@ const createAsset = async (asset, metadata, publicKey, privateKey) => {
     txCreateAliceSimple,
     privateKey
   );
-  tx = await conn.postTransactionCommit(txCreateAliceSimpleSigned);
+  const tx = await conn.postTransactionCommit(txCreateAliceSimpleSigned);
   console.log(tx);
   return tx;
 };

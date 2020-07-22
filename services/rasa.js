@@ -1,3 +1,4 @@
+const MongoClient = require("mongodb").MongoClient;
 const fetch = require("node-fetch");
 const rasa = require("../config").rasa;
 
@@ -11,19 +12,20 @@ const RASARequest = async (message, sender) => {
 };
 
 const getRasaHistory = async (email) => {
-  let data = [];
-  let db = await MongoClient.connect(rasa.mongo);
-  let dbo = db.db("rasa");
-  let result = await dbo
+  const db = await MongoClient.connect(rasa.mongo);
+  const result = await db.db("rasa")
     .collection("conversations")
     .findOne({ sender_id: email });
-  let start = 0;
-  result.events.forEach((event) => {
+
+  const start = 0;
+  const intents = [];
+  // let intent = {};
+  for (const event of result.events) {
     if (event.event == "session_started") {
       start = new Date(event.timestamp * 1000);
     }
     if (event.event == "user") {
-      int = {
+      intent = {
         text: event.text,
         intent: event.parse_data.intent.name,
         entities: event.parse_data.entities,
@@ -31,13 +33,13 @@ const getRasaHistory = async (email) => {
       };
     }
     if (event.event == "bot") {
-      int["reply"] = event.text;
-      int["reply_time"] = new Date(event.timestamp * 1000);
-      data.push(int);
-      int = {};
+      intent["reply"] = event.text;
+      intent["reply_time"] = new Date(event.timestamp * 1000);
+      intents.push(intent);
+      intent = {};
     }
-  });
-  return data;
+  }
+  return intents;
 };
 
 module.exports = {

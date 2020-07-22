@@ -14,15 +14,15 @@ const Vault = new VaultAccess({
 exports.setup = Vault.Setup();
 
 const signUp = async (password, username) => {
-  await Vault.SignUp(password, username);
+  return await Vault.SignUp(password, username);
 };
 
 const login = async (password, username) => {
-  await Vault.SignIn(password, username);
+  return await Vault.SignIn(password, username);
 };
 
 const write = async (key, value) => {
-  await Vault.Write(key, value);
+  return await Vault.Write(key, value);
 };
 
 const read = async (key) => {

@@ -32,7 +32,7 @@ const hash = (text) => {
   return crypto.createHash("sha1").update(JSON.stringify(text)).digest("hex");
 };
 
-const generateRSAKeys = (dir) => {
+const generateRSAKeys = () => {
   const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
     modulusLength: 4096,
     publicKeyEncoding: {

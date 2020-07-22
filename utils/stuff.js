@@ -136,7 +136,7 @@ const createRecord = async (
 
   let metadata = {
     email: email,
-    datetime: new Date().toString(),
+    datetime: (new Date()).toString(),
     doclist: [],
     id: id,
   };
@@ -153,27 +153,21 @@ const createRecord = async (
 const getAssetHistory = async (assetid) => {
   let transactions = await bigchainService.listTransactions(assetid);
   for (index in transactions) {
-    int = [];
-    int = {
+    const int = {
       operation: transactions[index].operation,
       date: transactions[index].metadata.datetime,
       doctor: [],
     };
-    if (transactions[index].operation == "TRANSFER") {
-      if (transactions[index].metadata.doclist.length > 0) {
-        for (doc in transactions[index].metadata.doclist) {
+    if (transactions[index].operation == "TRANSFER")
+      if (transactions[index].metadata.doclist.length > 0)
+        for (doc in transactions[index].metadata.doclist)
           int["doctor"].push(transactions[index].metadata.doclist[doc].email);
-        }
-      }
-      data.push(int);
-    } else {
-      data.push(int);
-    }
+    data.push(int);
   }
   return data;
 };
 const getPrescription = async (email, demail) => {
-  data = [];
+  const data = [];
   let assets = await bigchainService.getAsset(demail);
   for (const id in assets) {
     let inter = await bigchainService.getAsset(assets[id].data.assetID);

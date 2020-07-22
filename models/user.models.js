@@ -6,25 +6,28 @@ class User {
     this.records = null;
     this.user = this.getBio(username, schema, password);
     console.log("User is ", this.user);
-    if (this.records === null && this.registered) {
-      this.records = this.getRecords(username);
-      console.log("Records", this.records);
+    if (this.records == null && this.registered) {
+      this.getRecords(username)
+        .then(record => {
+          this.records = record;
+          console.log("Records", this.records);
+        });
     }
   }
-  getBio(username, schema, password) {
+  async getBio(username, schema, password) {
     try {
-      let records = bigchainService.getAsset(username);
+      let records = await bigchainService.getAsset(username);
       records = records.filter(function (data) {
         return data.schema == schema;
       });
       this.registered = true;
-      vaultService.login(password, username);
-      this.read_keys();
+      await vaultService.login(password, username);
+      await this.readKeys();
       return records[0]["data"];
     } catch {
       this.registered = false;
-      return;
     }
+    return null;
   }
 
   writeKeys(username) {
@@ -41,7 +44,7 @@ class User {
         this.rsaKeys.publicKey,
         this.secretKey,
       ];
-      let keys = [
+      const keys = [
         "bigchainPrivateKey",
         "bigchainPublicKey",
         "rsaPrivateKey",
@@ -56,12 +59,12 @@ class User {
     }
   }
 
-  readKeys() {
-    this.bigchainKeys.privateKey = vaultService.read("bigchainPrivateKey");
-    this.bigchainKeys.publicKey = vaultService.read("bigchainPublicKey");
-    this.rsaKeys.privateKey = vaultService.read("rsaPrivateKey");
-    this.rsaKeys.publicKey = vaultService.read("rsaPublicKey");
-    this.secretKey = vaultService.read("secretKey");
+  async readKeys() {
+    this.bigchainKeys.privateKey = await vaultService.read("bigchainPrivateKey");
+    this.bigchainKeys.publicKey = await vaultService.read("bigchainPublicKey");
+    this.rsaKeys.privateKey = await vaultService.read("rsaPrivateKey");
+    this.rsaKeys.publicKey = await vaultService.read("rsaPublicKey");
+    this.secretKey = await vaultService.read("secretKey");
   }
 
   async createUser(asset, password, username) {
@@ -91,22 +94,20 @@ class User {
     }
   }
 
-  getRecords(username) {
-    let records = [];
-    if (this.records === null) {
-      try {
-        records = bigchainService.getAsset(username);
-      } catch {
-        return [];
-      }
-      records.filter(function (record) {
-        return (
-          record.data.schema == "record" &&
+  async getRecords(username) {
+    try {
+      if (this.records == null) {
+        let records = [];
+        records = await bigchainService.getAsset(username);
+        records = records.filter(record => record.data.schema == "record" &&
           record.data.user.bigchainKey == this.user.bigchainKey
         );
-      });
-      return records;
+        return records;
+      }
+    } catch (err) {
+      console.log(err);
     }
+    return [];
   }
 }
 

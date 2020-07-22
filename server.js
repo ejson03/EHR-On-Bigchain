@@ -1,22 +1,25 @@
 const path = require("path");
 const express = require("express");
-const config = require("./config");
 const bodyParser = require("body-parser");
+const flash = require("connect-flash");
+const cookieSession = require("cookie-session");
+
+const config = require("./config");
 const router = require("./routes");
-var flash = require("connect-flash");
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-let cookieSession = require("cookie-session");
 app.use(
   cookieSession({
     name: "session",
     secret: config.secret,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours,
     credentials: "include",
+    // Please Update Session Encryption Keys
+    keys: [config.secret]
   })
 );
 app.use(flash());

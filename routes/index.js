@@ -6,8 +6,8 @@ const commonRouter = require("./common.routes");
 const userRouter = require("./user.routes");
 const doctorRouter = require("./doctor.routes");
 
-router.get("/status", (req, res) => {
-  res.send({ status: "OK" });
+router.get("/status", (_req, res) => {
+  res.json({ status: "OK" });
 });
 
 router.use("/", commonRouter);

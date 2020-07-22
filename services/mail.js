@@ -6,23 +6,22 @@ let transporter = nodemailer.createTransport({
   auth: {
     user: config.email.mail,
     pass: config.email.password,
-  },
+  }
 });
 
-const generateEmail = (email, otp) => {
-  let mailOptions = {
+const generateEmail = async (email, otp) => {
+  const mailOptions = {
     from: config.email.mail,
     to: email,
-    subject: "Sending Email using Node.js",
+    subject: "Medical Analytica Joiner",
     text: otp,
   };
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log("Email sent: " + info.response);
-    }
-  });
+  try {
+    const sentMessageInfo = await transporter.sendMail(mailOptions);
+    console.log("Email sent: " + sentMessageInfo.response);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const generateOTP = () => {

@@ -1,29 +1,25 @@
 const ipfsAPI = require("ipfs-api");
 const config = require("../config");
 const ipfs = ipfsAPI(config.ipfs.url, config.ipfs.port, { protocol: "https" });
-var Duplex = require("stream").Duplex;
-
-function BufferToStream(buffer) {
-  const stream = new Duplex();
-  stream.push(buffer);
-  stream.push(null);
-  return stream;
-}
+const Duplex = require("stream").Duplex;
 
 const Download = (res, buffer) => {
+  function BufferToStream(buffer) {
+    const stream = new Duplex();
+    stream.push(buffer);
+    stream.push(null);
+    return stream;
+  }
   return new Promise((resolve, reject) => {
     return BufferToStream(buffer)
       .pipe(res)
       .on("error", (error) => {
-        res.sendStatus(404);
-        resolve();
+        reject(error);
       })
       .on("finish", function () {
-        console.log("done");
         resolve();
       })
       .on("end", function () {
-        console.log("end");
         resolve();
       });
   });
