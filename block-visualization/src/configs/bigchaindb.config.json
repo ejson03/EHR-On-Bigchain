@@ -1,8 +1,0 @@
-{
-    "host": "192.168.33.160",
-    "port" : 9984,
-    "ws_port": 9985,
-    "api": "/api/v1/",
-    "validTx": "streams/valid_transactions",
-    "secure": false
-}
