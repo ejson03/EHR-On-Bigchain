@@ -1,11 +1,12 @@
 import { cryptoService, ipfsService, bigchainService } from '../services';
+import { decryptRSA } from '../services/crypto';
 
 export const getRSAKey = async (email: string, schema: string) => {
    let asset = await bigchainService.getAsset(email);
    asset.filter((data: any) => {
       return data['data']['schema'] == schema;
    });
-   return asset[0]['data']['rsa_key'];
+   return asset[0]['data']['RSAKey'];
 };
 
 export const getBigchainPublicKey = async (email: string, schema: string) => {
@@ -13,7 +14,7 @@ export const getBigchainPublicKey = async (email: string, schema: string) => {
    asset.filter((data: any) => {
       return data['data']['schema'] == schema;
    });
-   return asset[0]['data']['bigchain_key'];
+   return asset[0]['data']['bigchainKey'];
 };
 
 export const getEmail = async (key: any, schema: string) => {
@@ -39,15 +40,17 @@ export const createAccess = async (
    doctorEmail: string,
    secretKey: string
 ) => {
-   for (const index in dlist) {
-      let transaction = await bigchainService.listTransactions(dlist[index]);
+   for (const description of dlist) {
+      const transaction = await bigchainService.listTransactions(description);
+      const RSAKey = await getRSAKey(doctorEmail, 'doctor');
+      const encryptedKey = cryptoService.encryptRSA(secretKey, RSAKey);
       const data = {
          email: doctorEmail,
-         key: cryptoService.encryptRSA(secretKey, await getRSAKey(doctorEmail, 'doctor'))
+         key: encryptedKey
       };
       let metadata = transaction[transaction.length - 1].metadata;
+      metadata.datetime = new Date();
       metadata['doclist'].push(data);
-      metadata = JSON.stringify(metadata);
       console.log('metadata is ', metadata);
 
       let tx = await bigchainService.transferAsset(
@@ -61,15 +64,12 @@ export const createAccess = async (
 };
 
 export const revokeAccess = async (dlist: any, publicKey: string, privateKey: string, doctorEmail: string) => {
-   for (const index in dlist) {
-      let transaction = await bigchainService.listTransactions(dlist[index]);
-      let metadata = transaction[transaction.length - 1].metadata;
+   for (const description of dlist) {
+      const transaction = await bigchainService.listTransactions(description);
+      const metadata = transaction[transaction.length - 1].metadata;
       let doclist = metadata.doclist;
-      console.log('Before', doclist.length);
       doclist = doclist.filter((item: any) => item.email != doctorEmail);
-      console.log('After', doclist.length);
       metadata.doclist = doclist;
-      metadata = JSON.stringify(metadata);
       console.log('metadata is ', metadata);
       let tx = await bigchainService.transferAsset(
          transaction[transaction.length - 1],
@@ -112,7 +112,7 @@ export const showRevoke = async (demail: string, records: any) => {
 
 export const createIPFSHashFromFileBuffer = async (fileBuffer: any, secretKey: any) => {
    const cipher = cryptoService.encrypt(fileBuffer, secretKey);
-   const cipherBuffer = Buffer.from(cipher, 'base64');
+   const cipherBuffer = Buffer.from(cipher, 'hex');
    return await ipfsService.AddFile(cipherBuffer);
 };
 
@@ -122,47 +122,58 @@ export const createEncryptedIPFSHashFromFileBuffer = async (fileBuffer: any, sec
 };
 
 export const createIPFSHashFromCipher = async (cipher: any) => {
-   const cipherBuffer = Buffer.from(cipher, 'base64');
+   const cipherBuffer = Buffer.from(cipher, 'hex');
    return await ipfsService.AddFile(cipherBuffer);
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export const createRecord = async (
    data: any,
    username: string,
-   email: string,
    fileBuffer: any,
    publicKey: string,
    privateKey: string,
-   secretKey: string
+   secretKey: string,
+   email: string
 ) => {
-   console.log(fileBuffer, publicKey, privateKey, secretKey);
-   let cipher = cryptoService.encrypt(fileBuffer, secretKey);
-   let ipfsURL = await createIPFSHashFromCipher(cipher);
-   let ipfsURLEncrypted = cryptoService.encrypt(ipfsURL, secretKey);
-   let id = cryptoService.generateCode();
+   const id = cryptoService.generateCode();
+   const date = new Date().toString();
+   if (email === 'rasa') {
+      const ipfsURL = await createIPFSHashFromCipher(fileBuffer);
+      const ipfsURLEncrypted = cryptoService.encrypt(ipfsURL, secretKey);
+      Object.assign(data, {
+         file: ipfsURLEncrypted,
+         fileHash: cryptoService.hash(ipfsURLEncrypted),
+         id: id,
+         date: date
+      });
+   } else {
+      const cipher = cryptoService.encrypt(fileBuffer, secretKey);
+      const ipfsURL = await createIPFSHashFromCipher(cipher);
+      const ipfsURLEncrypted = cryptoService.encrypt(ipfsURL, secretKey);
 
-   Object.assign(data, {
-      username: username,
-      email: email,
-      file: ipfsURLEncrypted,
-      fileHash: cryptoService.hash(cipher),
-      id: id
-   });
+      Object.assign(data, {
+         username: username,
+         email: email,
+         file: ipfsURLEncrypted,
+         fileHash: cryptoService.hash(cipher),
+         id: id
+      });
+   }
 
-   let metadata = {
+   const metadata = {
       email: email,
       datetime: new Date().toString(),
       doclist: [],
       id: id
    };
 
-   let tx = await bigchainService.createAsset(data, metadata, publicKey, privateKey);
+   const tx = await bigchainService.createAsset(data, metadata, publicKey, privateKey);
    return tx;
 };
 
 export const getAssetHistory = async (assetid: any) => {
    const data: any = [];
-   let transactions = await bigchainService.listTransactions(assetid);
+   const transactions = await bigchainService.listTransactions(assetid);
    for (const transaction of transactions) {
       const filterTransaction: any = {
          operation: transaction.operation,
@@ -181,25 +192,28 @@ export const getAssetHistory = async (assetid: any) => {
    return data;
 };
 
-export const getPrescription = async (email: string, demail: string) => {
+export const getPrescription = async (_username: string, demail: string, secretKey: string) => {
    const data: any = [];
-   let assets = await bigchainService.getAsset(demail);
-   for (const id in assets) {
-      let inter = await bigchainService.getAsset(assets[id].data.assetID);
-      if (inter[0].data.email == email) {
+   const assets = await bigchainService.getAsset(demail);
+   for (const asset of assets) {
+      if (asset.data.schema != 'Doctor') {
+         let inter = await bigchainService.getAsset(asset.data.assetID);
+         inter = inter.filter(ass => ass.id === asset.data.assetID);
+         console.log(inter);
          data.push({
-            prescription: assets[0].data.prescription,
-            file: cryptoService.decrypt(inter[0].data.file)
+            prescription: asset.data.prescription,
+            description: asset.data.description,
+            file: cryptoService.decrypt(inter[0].data.file, secretKey)
          });
       }
    }
    return data;
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-export const getDoctorFiles = async (email: string) => {
-   let metadata = await bigchainService.getMetadata(email);
-   let data: any = [];
-   let assetSet = new Set();
+export const getDoctorFiles = async (email: string, privateRSAKey: any) => {
+   const metadata = await bigchainService.getMetadata(email);
+   const data: any = {};
+   const assetSet = new Set();
 
    for (const meta of metadata) {
       const tx = await bigchainService.listTransactions(meta.id);
@@ -214,17 +228,24 @@ export const getDoctorFiles = async (email: string) => {
       const docs = tx[tx.length - 1].metadata.doclist;
       let result = docs.filter((st: any) => st.email.includes(email));
       if (result.length != 0) {
+         const decryptionKey = decryptRSA(result[0].key, privateRSAKey);
+         console.log('decryption is ', decryptionKey);
          let ass = await bigchainService.getAsset(asset);
-
-         data.push({
-            email: ass[0].data.email,
-            file: cryptoService.decrypt(ass[0].data.file),
+         if (!data[ass[0].data.username]) {
+            data[ass[0].data.username] = {
+               username: ass[0].data.username,
+               email: ass[0].data.email,
+               files: []
+            };
+         }
+         data[ass[0].data.username].files.push({
+            file: cryptoService.decrypt(ass[0].data.file, decryptionKey),
             description: ass[0].data.description,
             id: asset,
-            pkey: tx[tx.length - 1].outputs[0].public_keys[0]
+            pkey: tx[tx.length - 1].outputs[0].public_keys[0],
+            secret: decryptionKey
          });
       }
    }
-   console.log(data);
    return data;
 };

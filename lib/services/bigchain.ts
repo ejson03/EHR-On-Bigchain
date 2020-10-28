@@ -10,7 +10,7 @@ export const createBigchainKeys = (email: string) => {
 };
 
 export const createAsset = async (asset: any, metadata: any, publicKey: string, privateKey: string) => {
-   let txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
+   const txCreateAliceSimple = driver.Transaction.makeCreateTransaction(
       asset,
       metadata,
       [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
@@ -28,7 +28,7 @@ export const transferAsset = async (transaction: any, metadata: any, publicKey: 
       [driver.Transaction.makeOutput(driver.Transaction.makeEd25519Condition(publicKey))],
       metadata
    );
-   let txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey);
+   const txTransferBobSigned = driver.Transaction.signTransaction(txTransferBob, privateKey);
    const transfer = await conn.postTransactionCommit(txTransferBobSigned);
    return transfer;
 };
@@ -41,8 +41,8 @@ export const getMetadata = async (query: any) => {
    return await conn.searchMetadata(query);
 };
 
-export const getTransactions = async (query: any) => {
-   return await conn.getTransactions(query);
+export const getTransaction = async (query: any) => {
+   return await conn.getTransaction(query);
 };
 
 export const listTransactions = async (query: any) => {

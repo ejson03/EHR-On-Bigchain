@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { userController } from '../controllers';
 import { fileUpload } from '../middleware/file-upload';
+import { GOOGLE_MAPS_KEY } from '../config';
 
 const userRouter: Router = Router();
 
@@ -8,15 +9,23 @@ userRouter.get('/doctorlist', userController.getDoctorList);
 
 userRouter.get('/medicalhistory', userController.getMedicalHistory);
 
-// userRouter.post('/access', userController.postAccess);
-// userRouter.post('/revoke', userController.postRevoke);
+userRouter.post('/access', userController.postAccess);
+userRouter.post('/revoke', userController.postRevoke);
 
 userRouter.get('/home', function (req: Request, res: Response) {
-   res.render('patient/profile.ejs', { data: req.session?.user.user });
+   res.render('patient/profile.ejs', { data: req.session?.user.user, name: req.session?.user.user.name });
 });
 
-userRouter.get('/add', function (_req: Request, res: Response) {
-   res.render('patient/addrecord.ejs');
+userRouter.get('/profileupdate', function (req: Request, res: Response) {
+   res.render('patient/profileupdate.ejs', { data: req.session?.user.user, name: req.session?.user.user.name });
+});
+
+userRouter.get('/chatbot', function (req: Request, res: Response) {
+   res.render('patient/chatbot.ejs', { name: req.session?.user.user.name, map: GOOGLE_MAPS_KEY });
+});
+
+userRouter.get('/add', function (req: Request, res: Response) {
+   res.render('patient/addrecord.ejs', { name: req.session?.user.user.name });
 });
 
 userRouter.post('/check', userController.check);

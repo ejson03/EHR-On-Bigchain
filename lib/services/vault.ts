@@ -1,35 +1,52 @@
-import { VaultAccess } from 'node-vault-user-pass';
+import VaultAccess from 'node-vault-user-pass';
 import * as config from '../config';
 
-const Vault = new VaultAccess({
+export const Vault = new VaultAccess({
    Authority: ['create', 'read', 'update', 'delete', 'list', 'sudo'],
-   Path: 'path',
    Policy: 'auth_policy',
    EndPoint: config.VAULT.url,
    UserName: 'username',
    SecretMountPoint: 'secret_zone',
-   Token: config.VAULT.token,
-   CertificateMountPoint: 'certificate'
+   Token: config.VAULT.token
 });
 
-export const setup = Vault.Setup();
+Vault.Setup();
 
-export const signUp = async (password: string, username: string) => {
-   return await Vault.SignUp(password, username);
+export const vaultFromToken = async (token: string) => {
+   const clientVault = new VaultAccess({
+      Authority: ['create', 'read', 'update', 'delete', 'list'],
+      Policy: 'auth_policy',
+      EndPoint: config.VAULT.url,
+      SecretMountPoint: 'secret_zone',
+      Token: token
+   });
+   await clientVault.UserName();
+   return clientVault;
 };
 
-export const login = async (password: string, username: string) => {
-   return await Vault.SignIn(password, username);
+export const signUp = async (vault: VaultAccess, password: string, username: string) => {
+   const token = vault.Config.Token;
+   const result = await vault.SignUp(password, username);
+   vault.Config.Token = token;
+   return result;
 };
 
-export const write = async (key: string, value: string) => {
-   return await Vault.Write(key, value);
+export const login = async (vault: VaultAccess, password: string, username: string) => {
+   const token = vault.Config.Token;
+   const result = await vault.SignIn(password, username);
+   vault.Config.Token = token;
+   vault.vault.token = token;
+   return result;
 };
 
-export const read = async (key: string) => {
-   return await Vault.Read(key);
+export const write = async (vault: VaultAccess, key: string, value: string) => {
+   return await vault.Write(key, value);
 };
 
-export const getUsers = async () => {
-   return await Vault.UsersGet();
+export const read = async (vault: VaultAccess, key: string) => {
+   return await vault.Read(key);
+};
+
+export const getUsers = async (vault: VaultAccess) => {
+   return await vault.UsersGet();
 };

@@ -27,18 +27,8 @@ export default class UserModel {
    public records: [] = [];
    public user = {} as UserInterface;
    public secrets = {} as SecretInterface;
+   public clientToken: string = '';
 
-   /*constructor() (username: string, schema: string, password?: string) {
-      if (password) {
-         this.getBio(username, schema, password).then(_user => {
-            console.log('User details on blockchain is ', this.user);
-            this.getRecords(username).then(record => {
-               this.records = record;
-               console.log('Records', this.records);
-            });
-         });
-      }
-   }*/
    constructor(user?: UserModel) {
       if (user) {
          this.secrets = user.secrets;
@@ -50,18 +40,20 @@ export default class UserModel {
 
    async getBio(username: string, schema: string) {
       try {
-         let records = await bigchainService.getAsset(username);
-         records = records.filter(record => record.data.schema == schema);
+         const records = await bigchainService.getAsset(username);
+         const filteredRecords = records.filter(record => record.data.schema == schema);
          this.registered = true;
-         this.user = records[0]['data'];
+         this.user = filteredRecords[0]['data'];
          await this.readKeys();
-      } catch {
+      } catch (error) {
+         console.error(error);
          this.registered = false;
       }
    }
 
-   writeKeys(username: string) {
+   async writeKeys(username: string) {
       try {
+         const clientVault = await vaultService.vaultFromToken(this.clientToken);
          this.secrets!.secretKey = cryptoService.createSecretKey();
          const bigchainKeys = bigchainService.createBigchainKeys(
             cryptoService.encrypt(username, this.secrets.secretKey)
@@ -72,25 +64,27 @@ export default class UserModel {
          this.secrets!.RSAPrivateKey = privateKey;
          this.secrets!.RSAPublicKey = publicKey;
          for (const secret in this.secrets) {
-            vaultService.write(secret, this.secrets[secret]);
+            vaultService.write(clientVault, secret, this.secrets[secret]);
          }
       } catch (error) {
-         console.log(error);
+         console.error(error);
       }
    }
 
    async readKeys() {
-      this.secrets.bigchainPrivateKey = await vaultService.read('bigchainPrivateKey');
-      this.secrets.bigchainPublicKey = await vaultService.read('bigchainPublicKey');
-      this.secrets.RSAPrivateKey = await vaultService.read('RSAPrivateKey');
-      this.secrets.RSAPublicKey = await vaultService.read('RSAPublicKey');
-      this.secrets.secretKey = await vaultService.read('secretKey');
+      const clientVault = await vaultService.vaultFromToken(this.clientToken);
+      this.secrets.bigchainPrivateKey = await vaultService.read(clientVault, 'bigchainPrivateKey');
+      this.secrets.bigchainPublicKey = await vaultService.read(clientVault, 'bigchainPublicKey');
+      this.secrets.RSAPrivateKey = await vaultService.read(clientVault, 'RSAPrivateKey');
+      this.secrets.RSAPublicKey = await vaultService.read(clientVault, 'RSAPublicKey');
+      this.secrets.secretKey = await vaultService.read(clientVault, 'secretKey');
    }
 
    async createUser(asset: UserInterface, password: string) {
       try {
-         await vaultService.signUp(password, asset.username);
-         this.writeKeys(asset.username);
+         const vault = vaultService.Vault;
+         await vaultService.signUp(vault, password, asset.username);
+         await this.writeKeys(asset.username);
          asset.bigchainKey = this.secrets.bigchainPublicKey.toString();
          asset.RSAKey = this.secrets.RSAPublicKey.toString();
          asset.date = new Date().toString();
@@ -104,19 +98,22 @@ export default class UserModel {
          this.user = tx.asset.data;
          return tx.asset.data;
       } catch (error) {
-         console.log('Error is', error);
+         console.error('Error is', error);
          return false;
       }
    }
 
    async getRecords(username: string) {
       try {
-         let records = await bigchainService.getAsset(username);
-         records = records.filter(record => record.data.schema == 'record');
-         console.log(records);
-         this.records = records;
+         const records = await bigchainService.getAsset(username);
+         const filterRecords = records.filter(
+            record => record.data.schema == 'record' && record.data.username == username
+         );
+         this.records = filterRecords;
+         return filterRecords;
       } catch (err) {
-         console.log(err);
+         console.error(err);
+         return [];
       }
       return [];
    }

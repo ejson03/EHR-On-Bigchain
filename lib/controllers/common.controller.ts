@@ -2,18 +2,21 @@ import { Request, Response } from 'express';
 import { ipfsService, rasaService, cryptoService, vaultService } from '../services';
 import UserModel, { UserInterface } from '../models/user.models';
 import { createIPFSHashFromFileBuffer } from '../utils/ehr';
+import { SessionDestroy, SessionSave } from '../utils';
 
 const doctorExclude = ['pass', 're_pass', 'signup'];
 const patientExclude = [...doctorExclude, 'location', 'institute', 'specialization'];
 
 export const signUp = async (req: Request, res: Response) => {
-   const users = await vaultService.getUsers();
-   if (users.includes(req.body.username)) {
+   const vault = vaultService.Vault;
+   const users = await vaultService.getUsers(vault);
+   // console.log(users, req.body.username, users.includes(req.body.username));
+
+   if (users.includes(req.body.username) || !req.body.username) {
       return res.status(401).json({ success: false });
    } else {
       try {
          const password = req.body.pass;
-         req.session!.password = password;
          const asset: UserInterface = req.body as UserInterface;
          if (req.body.institute === '') {
             patientExclude.forEach(key => {
@@ -26,15 +29,14 @@ export const signUp = async (req: Request, res: Response) => {
          }
          const user = new UserModel();
          await user.createUser(asset, password);
-         req.session!.user = user;
-         console.log(req.session);
-         if (asset.schema == 'Patient') {
-            return res.redirect('/user/home');
+         if (user.user) {
+            return res.redirect('/login');
          } else {
-            res.redirect('/doctor/home');
+            await SessionDestroy(req);
+            return res.sendStatus(404);
          }
       } catch (error) {
-         console.log(error);
+         console.error(error);
          return res.sendStatus(404);
       }
    }
@@ -42,16 +44,21 @@ export const signUp = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-   const users = await vaultService.getUsers();
+   const vault = vaultService.Vault;
+   const users = await vaultService.getUsers(vault);
    if (users.includes(req.body.username)) {
-      const status = await vaultService.login(req.body.pass, req.body.username);
+      const status = await vaultService.login(vault, req.body.pass, req.body.username);
       if (status) {
-         req.session!.pass = req.body.pass;
+         const vaultClientToken = status.auth.client_token;
          const user = new UserModel();
+         user.clientToken = vaultClientToken;
          await user.getBio(req.body.username, req.body.schema);
          await user.getRecords(req.body.username);
          req.session!.user = user;
+         req.session!.client_token = vaultClientToken;
+         await SessionSave(req);
          console.log(req.session);
+         // console.log(req.session);
          if (req.body.schema == 'Patient') {
             return res.redirect('/user/home');
          } else {
@@ -69,14 +76,18 @@ export const view = async (req: Request, res: Response) => {
    try {
       const status = String(req.body.status);
       let fileURL = String(req.body.fileURL);
+      let decryptedBuffer;
       if (status === 'encrypted') {
          fileURL = cryptoService.decrypt(fileURL, req.session?.user.secrets.secretKey);
       }
       console.log(fileURL);
-      let buffer = await ipfsService.GetFile(fileURL);
-      buffer = cryptoService.decryptFile(buffer.toString('utf-8'), req.session?.user.secrets.secretKey);
-      buffer = new Buffer(buffer, 'binary');
-      await ipfsService.Download(res, buffer);
+      const buffer = await ipfsService.GetFile(fileURL);
+      if (req.body.hasOwnProperty('key')) {
+         decryptedBuffer = cryptoService.decryptFile(buffer, req.body.key);
+      } else {
+         decryptedBuffer = cryptoService.decryptFile(buffer, req.session?.user.secrets.secretKey);
+      }
+      await ipfsService.Download(res, decryptedBuffer);
       return fileURL;
    } catch (err) {
       console.error(err);
@@ -86,12 +97,13 @@ export const view = async (req: Request, res: Response) => {
 
 export const rasa = async (req: Request, res: Response) => {
    try {
-      const sender = String(req.session?.name) || 'vortex';
+      const sender = String(req.session?.user.user.username) || 'vortex';
       let message: any;
       let rasa: any;
+      console.log(req.file, req);
       if (req.file) {
-         message = await createIPFSHashFromFileBuffer(req.file.buffer, 'edededwe'); //req.user.secretKey
-         rasa = await rasaService.RASARequest(message, sender, 'edededwe'); //req.session?.user.secrets.secretKey);
+         message = await createIPFSHashFromFileBuffer(req.file.buffer, req.session?.user.secrets.secretKey);
+         rasa = await rasaService.RASARequest(message, sender, req.session?.client_token);
       } else {
          message = req.body.message;
          rasa = await rasaService.RASARequest(message, sender);
@@ -104,13 +116,12 @@ export const rasa = async (req: Request, res: Response) => {
 };
 
 export const rasaHistory = async (req: Request, res: Response) => {
-   let email = req.body.rasa;
+   const username = req.body.rasa;
    try {
-      let data = await rasaService.getRasaHistory(email);
-      console.log(data);
-      return res.render('patientrasahistory.ejs', {
+      let data = await rasaService.getRasaHistory(username);
+      return res.render('doctor/history.ejs', {
          doc: data,
-         email: req.session?.email
+         name: req.session?.user.user.name
       });
    } catch (err) {
       console.error('Error: ', err);

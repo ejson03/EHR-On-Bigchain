@@ -9,10 +9,11 @@ export const VAULT: any = {
    url: String(process.env.VAULT_URL),
    token: String(process.env.VAULT_TOKEN)
 };
-export const MONGO_URL: string = String(process.env.MONGO_URL || 'mongodb://192.168.99.103:27017/');
+export const MONGO_URL: string = String(process.env.MONGO_URL || 'mongodb://localhost:27017/');
 export const RASA_URL: string = String(process.env.RASA_URL || 'http://localhost:5005');
-export const BIGCHAIN_URL: string = String(process.env.BIGCHAIN_URL || 'http://192.168.99.103:9984/api/v1');
+export const BIGCHAIN_URL: string = String(process.env.BIGCHAIN_URL || 'http://localhost:9984/api/v1');
 export const IPFS: any = {
    url: String(process.env.IPFS_URL || 'ipfs.infura.io'),
    port: String('5001')
 };
+export const GOOGLE_MAPS_KEY: string = String(process.env.GOOGLE_MAPS_KEY);
