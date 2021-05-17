@@ -1,24 +1,30 @@
 import { createRecord } from '../utils/ehr.js';
 import { vaultService } from '../services';
 import type { Request, Response } from 'express';
-import UserModel from '../models/user.models';
+import UserModel, { RecordInterface } from '../models/user.models';
+import { filterRecords } from '../utils/filteration.js';
+
+export const getFilteredRecords = async (req: Request, res: Response) => {
+   const { username } = req.body;
+   const query = req.body as Partial<RecordInterface>;
+   const records = await UserModel.getRecords(username);
+   const filtered = filterRecords(records, query);
+   return res.json(filtered);
+};
 
 export const getAll = async (req: Request, res: Response) => {
    const { username } = req.body;
-   console.log(username);
-   const user = new UserModel();
-   const records = await user.getRecords(username);
-   console.log(records);
+   const records = await UserModel.getRecords(username);
    return res.json(records);
 };
 
 export const addRecord = async (req: Request, res: Response) => {
-   const { token, asset } = req.body;
+   const token = req.body.token;
+   const asset = req.body.asset;
    const clientVault = await vaultService.vaultFromToken(token);
    const bigchainPrivateKey = await vaultService.read(clientVault, 'bigchainPrivateKey');
    const bigchainPublicKey = await vaultService.read(clientVault, 'bigchainPublicKey');
    const secretKey = await vaultService.read(clientVault, 'secretKey');
-
    try {
       const tx = await createRecord(
          asset,
@@ -29,7 +35,6 @@ export const addRecord = async (req: Request, res: Response) => {
          secretKey,
          'rasa'
       );
-      console.log(tx);
       return res.json(tx.id);
    } catch (err) {
       console.error(err);
