@@ -5,7 +5,6 @@ rasa
 dist
 .vscode
 dummy-code
-.env
 env.json
 test
 env
@@ -17,7 +16,6 @@ env
 **/server.key
 
 ## rasa
-**/tests/
 .bigchaindb/
 bigchaindb.config.json
 
