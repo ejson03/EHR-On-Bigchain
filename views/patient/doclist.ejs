@@ -13,7 +13,7 @@
           <div class="row">
             <div class="col-md-12">
               <div class="card">
-                <div class="card-header card-header-warning">
+                <div class="card-header card-header-primary">
                   <h4 class="card-title ">Doctor List</h4>
                   <p class="card-category"> List of Registered Doctors as of  <script>
                     document.write(new Date())
@@ -22,7 +22,7 @@
                 <div class="card-body table-responsive">
                   <div class="table-responsive">
                     <table class="table table-hover">
-                      <thead class="text-primary">
+                      <thead class="text-warning">
                         <th>
                           ID
                         </th>
@@ -76,10 +76,10 @@
                                 </form>  
                                   <!-- Modal -->
                                 <div class="modal fade" id="grantform-modal-<%= doctors[doctor].username %>" tabindex="-1" role="dialog" aria-labelledby="grantform-title-<%= doctors[doctor].username %>" aria-hidden="true">
-                                  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
                                     <div class="modal-content">
                                       <div class="modal-header">
-                                        <h5 class="modal-title text-primary" id="grantform-title-<%= doctors[doctor].username %>">DOCUMENT LIST<br>
+                                        <h5 class="modal-title text-warning" id="grantform-title-<%= doctors[doctor].username %>">DOCUMENT LIST<br>
                                         <p class="card-category "> <i class="material-icons">access_time</i> updated  <script>
                                           document.write(new Date())
                                         </script> ago </p></h5>
@@ -111,10 +111,10 @@
                                 </form>  
                                 <!-- Modal -->
                                 <div class="modal fade" id="revokeform-modal-<%= doctors[doctor].username %>" tabindex="-1" role="dialog" aria-labelledby="revokeform-title-<%= doctors[doctor].username %>" aria-hidden="true">
-                                  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
                                     <div class="modal-content">
                                       <div class="modal-header">
-                                        <h5 class="modal-title text-primary" id="revokeform-title-<%= doctors[doctor].username %>">DOCUMENT LIST<br>
+                                        <h5 class="modal-title text-warning" id="revokeform-title-<%= doctors[doctor].username %>">DOCUMENT LIST<br>
                                           <p class="card-category "> <i class="material-icons">access_time</i> updated  <script>
                                             document.write(new Date())
                                           </script> ago </p></h5>
@@ -145,10 +145,10 @@
                                 </form>  
                                 <!-- Modal -->
                                 <div class="modal fade" id="prescribeform-modal-<%= doctors[doctor].username %>" tabindex="-1" role="dialog" aria-labelledby="prescribeform-title-<%= doctors[doctor].username %>" aria-hidden="true">
-                                  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
                                     <div class="modal-content">
                                       <div class="modal-header">
-                                        <h5 class="modal-title text-primary" id="prescribeform-title-<%= doctors[doctor].username %>">PRESCRIPTIONS<br>
+                                        <h5 class="modal-title text-warning" id="prescribeform-title-<%= doctors[doctor].username %>">PRESCRIPTIONS<br>
                                           <p class="card-category "> <i class="material-icons">access_time</i> updated  <script>
                                             document.write(new Date())
                                           </script> ago </p></h5>
@@ -189,7 +189,7 @@
       const element = document.getElementById(app);
       const labelstart=`<div class=" table-responsive">
                                 <table class="table table-hover">
-                                  <thead class="text-primary">
+                                  <thead class="text-warning">
                                     <th> Document ID </th>
                                     <th> Description </th>
                                     <th> File</th>
@@ -223,35 +223,26 @@
     }
 
     function prescribeModal(doctor,records, app){
+
       let inner = "";
       let table = "";
       const element = document.getElementById(app);
       const labelstart=`<div class=" table-responsive">
                                 <table class="table table-hover">
-                                  <thead class="text-primary">
-                                    <th> Prescription Number </th>
+                                  <thead class="text-warning">
+
                                     <th> Prescription </th>
                                     <th> Description </th>
-                                    <th> File</th>
                                   </thead>
                                   <tbody>`
       const labelend = `</tbody>
                                 </table>
                               </div>`
-
-      for (let d=0; d<records.records.length; d++){ 
+      console.log(records[0])
+      for (const record of records.records){ 
         const mainDiv = ` <tr>
-                            <td>${d+1}</td>
-                            <td>${records.records[d].prescription}</td>
-                            <td>${records.records[d].description}</td>
-                            <td>
-                                  <form method="post" action="/view">
-                                        <input type="hidden" name="status" value="decrypted"> 
-                                        <button  type="submit" rel="tooltip" title="File" class="btn btn-danger btn-link btn-sm" value="${records.records[d].file}" name="fileURL">
-                                          <i class="material-icons">attachment</i>
-                                        </button>
-                                  </form>       
-                            </td>
+                            <td>${record.prescription}</td>
+                            <td>${record.description}</td>
                           </tr>`
         inner +=  mainDiv
       }
@@ -285,7 +276,13 @@
             body: JSON.stringify({ value: doctor})
         });
         const result = await response.json();
+        if (action === "prescribeform"){
+          prescribeModal(doctor, result, divId);
+
+        } else {
           makeModal(doctor, result, divId);
+
+        }
         
         document.getElementById(modalId).style.display = "block";
 }

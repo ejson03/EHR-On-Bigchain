@@ -26,23 +26,15 @@
                            <th>Chat No.</th>
                            <th>Time</th>
                            <th>Intent</th>
-                           <th>Entities</th>
                            <th>Reply Time</th>
                            <th>Reply</th>
                            </thead>
                            <tbody>
                               <% for (var d=0; d<doc.length; d++){ %>
                            <tr>
-                              <td> <%= d +1%></td>
+                              <td> <%= d +1 %></td>
                               <td> <%= doc[d].message_time %></td>
                               <td> <%= doc[d].intent %></td>
-                              <td>
-                                <% if (doc[d].entities.length > 0) { %>
-                                    <% for (var i=0; i<doc[d].entities.length; i++){ %>
-                                         <%= doc[d].entities[i] %></br>
-                                        <% } %>
-                                            <% } %>
-                              </td>
                               <td> <%= doc[d].reply_time %></td>
                               <td> <%= doc[d].reply %></td>
                            </tr>
